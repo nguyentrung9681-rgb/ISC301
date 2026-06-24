@@ -10,14 +10,14 @@ import LoginModal from './components/LoginModal';
 import AlertModal from './components/AlertModal';
 import WishlistModal from './components/WishlistModal';
 import ProfilePage from './components/ProfilePage';
-import { api } from './api';
+import { api } from "./api/login.js";
 
 // Icon imports from lucide-react
 import {
-  ArrowRight, 
-  MapPin, 
-  Phone, 
-  Mail, 
+  ArrowRight,
+  MapPin,
+  Phone,
+  Mail,
   Trash2,
   Lock,
   Star,
@@ -38,7 +38,7 @@ const parseImages = (imgUrl) => {
   try {
     const parsed = JSON.parse(imgUrl);
     if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-  } catch(e) {}
+  } catch (e) { }
   return [imgUrl];
 };
 
@@ -118,7 +118,7 @@ export default function App() {
           currentUser ? api.getWishlist().catch(() => ({ data: [] })) : { data: [] },
           currentUser?.role === 'manager' ? api.getAdminOrders().catch(() => []) : (currentUser ? api.getOrderHistory().catch(() => ({ data: [] })) : { data: [] })
         ]);
-        
+
         // Map products
         const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
           id: p.id,
@@ -128,10 +128,10 @@ export default function App() {
           category: p.category || 'ao',
           categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
           sizes: ['S', 'M', 'L', 'XL'],
-          colors: [{name: 'Mặc định', hex: '#000'}],
+          colors: [{ name: 'Mặc định', hex: '#000' }],
           inventory: p.stockQuantity || 100,
           soldCount: 0,
-          status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
+          status: 'approved',
           isNew: true,
           isBestSeller: p.ratingAverage >= 4.5,
           images: parseImages(p.imageUrl)
@@ -149,7 +149,7 @@ export default function App() {
           quantity: c.quantity || 1,
           images: c.product?.imageUrl ? parseImages(c.product.imageUrl) : (c.images || ['https://via.placeholder.com/400x500']),
           selectedSize: c.selectedSize || 'M',
-          selectedColor: c.selectedColor || {name: 'Mặc định', hex: '#000'}
+          selectedColor: c.selectedColor || { name: 'Mặc định', hex: '#000' }
         }));
 
         setCart(mapCart(cartRes.data || cartRes || []));
@@ -188,62 +188,90 @@ export default function App() {
   }, [currentUser]);
 
   // LOGIN, REGISTER & LOGOUT HANDLERS
-  const handleRegister = async (userData) => {
-    try {
-      await api.register(userData);
-      addToast('Đăng ký tài khoản thành công! Tự động đăng nhập...', 'success');
-      // Tự động login sau khi đăng ký
-      await handleLogin(userData.email, userData.password);
-    } catch (err) {
-      addToast(err.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.', 'error');
-    }
-  };
 
   const handleLogin = async (email, password) => {
-
     try {
-      const res = await api.login({ email, password });
-      
-      // Map API response to user shape expected by frontend if necessary
+      const res = await api.login({
+        email,
+        password,
+      });
+
       const user = {
         ...res,
-        name: res.fullName || 'Khách Hàng',
-        role: res.role ? res.role.toLowerCase() : 'customer'
+        name: res.fullName || res.name || "User",
+        role: res.role
+          ? res.role.toLowerCase()
+          : "customer",
       };
 
       setCurrentUser(user);
+
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify(user)
+      );
+
       setShowLoginModal(false);
-      
-      let roleText = "Khách Hàng";
-      if (user.role === 'manager' || user.role === 'admin') roleText = "Quản Lý";
 
-      addToast(`Đăng nhập thành công! Chào mừng ${user.name} (${roleText})`, 'success');
+      addToast("Đăng nhập thành công!", "success");
 
-      // Auto-redirect based on role
-      if (user.role === 'manager' || user.role === 'admin') {
-        setIsAdminMode(true);
-        setCurrentRole(user.role);
-        setCurrentPage('admin');
-      } else {
-        setIsAdminMode(false);
-        setCurrentPage('home');
-      }
     } catch (err) {
-      addToast(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.', 'error');
+      addToast(
+        err.message || "Đăng nhập thất bại",
+        "error"
+      );
+    }
+  };
+
+  const handleRegister = async (userData) => {
+    try {
+
+      await api.register({
+        email: userData.email,
+        password: userData.password,
+        fullName: userData.fullName,
+        phone: userData.phone,
+      });
+
+      addToast(
+        "Đăng ký thành công!",
+        "success"
+      );
+
+      await handleLogin(
+        userData.email,
+        userData.password
+      );
+
+    } catch (err) {
+      addToast(
+        err.message || "Đăng ký thất bại",
+        "error"
+      );
     }
   };
 
   const handleLogout = async () => {
     try {
-      await api.logout().catch(() => {});
-    } finally {
+
+      await api.logout();
+
       setCurrentUser(null);
-      setIsAdminMode(false);
-      setCurrentPage('home');
-      setCart([]);
-      setWishlist([]);
-      setOrders([]);
-      addToast('Đã đăng xuất tài khoản thành công.', 'info');
+
+      localStorage.removeItem(
+        "currentUser"
+      );
+
+      addToast(
+        "Đăng xuất thành công",
+        "success"
+      );
+
+    } catch (err) {
+      addToast(
+        err.message,
+        "error"
+      );
     }
   };
 
@@ -326,7 +354,7 @@ export default function App() {
         quantity: c.quantity || 1,
         images: c.product?.imageUrl ? parseImages(c.product.imageUrl) : (c.images || ['https://via.placeholder.com/400x500']),
         selectedSize: c.selectedSize || 'M',
-        selectedColor: c.selectedColor || {name: 'Mặc định', hex: '#000'}
+        selectedColor: c.selectedColor || { name: 'Mặc định', hex: '#000' }
       }));
       setCart(mapCart(rawCart));
     } catch (err) {
@@ -414,9 +442,9 @@ export default function App() {
 
     try {
       await api.checkout(checkoutAddress.trim(), checkoutPhone.trim(), paymentMethod === 'COD' ? "COD" : "Chuyển khoản");
-      
+
       setCart([]);
-      
+
       const orderId = "JUSST" + Math.floor(100000 + Math.random() * 900000);
       setLastOrderId(orderId);
       setShowSuccessPopup(true);
@@ -430,21 +458,21 @@ export default function App() {
       // Refresh products (inventory updated)
       const productsRes = await api.getProducts().catch(() => []);
       const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
-          id: p.id,
-          name: p.productName || p.name,
-          description: p.description || '',
-          price: p.price || 0,
-          category: p.category || 'ao',
-          categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
-          sizes: ['S', 'M', 'L', 'XL'],
-          colors: [{name: 'Mặc định', hex: '#000'}],
-          inventory: p.stockQuantity || 100,
-          soldCount: 0,
-          status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
-          isNew: true,
-          isBestSeller: p.ratingAverage >= 4.5,
-          images: parseImages(p.imageUrl)
-        }));
+        id: p.id,
+        name: p.productName || p.name,
+        description: p.description || '',
+        price: p.price || 0,
+        category: p.category || 'ao',
+        categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
+        sizes: ['S', 'M', 'L', 'XL'],
+        colors: [{ name: 'Mặc định', hex: '#000' }],
+        inventory: p.stockQuantity || 100,
+        soldCount: 0,
+        status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
+        isNew: true,
+        isBestSeller: p.ratingAverage >= 4.5,
+        images: parseImages(p.imageUrl)
+      }));
       setProducts(mappedProducts);
 
       // Clear form
@@ -463,20 +491,20 @@ export default function App() {
     try {
       const productsRes = await api.getProducts().catch(() => []);
       const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
-          id: p.id,
-          name: p.productName || p.name,
-          description: p.description || '',
-          price: p.price || 0,
-          category: p.category || 'ao',
-          categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
-          sizes: ['S', 'M', 'L', 'XL'],
-          colors: [{name: 'Mặc định', hex: '#000'}],
-          inventory: p.stockQuantity || 100,
-          soldCount: 0,
-          status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
-          isNew: true,
-          isBestSeller: p.ratingAverage >= 4.5,
-          images: parseImages(p.imageUrl)
+        id: p.id,
+        name: p.productName || p.name,
+        description: p.description || '',
+        price: p.price || 0,
+        category: p.category || 'ao',
+        categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
+        sizes: ['S', 'M', 'L', 'XL'],
+        colors: [{ name: 'Mặc định', hex: '#000' }],
+        inventory: p.stockQuantity || 100,
+        soldCount: 0,
+        status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
+        isNew: true,
+        isBestSeller: p.ratingAverage >= 4.5,
+        images: parseImages(p.imageUrl)
       }));
       setProducts(mappedProducts);
     } catch (e) {
@@ -494,7 +522,7 @@ export default function App() {
         imageUrl: newProduct.imageUrl || '',
         category: newProduct.category || 'ao'
       };
-      
+
       await api.addProduct(payload);
       await fetchProducts();
 
@@ -514,7 +542,7 @@ export default function App() {
         imageUrl: newProduct.imageUrl || '',
         category: newProduct.category || 'ao'
       };
-      
+
       await api.updateProduct(id, payload);
       await fetchProducts();
 
@@ -571,10 +599,10 @@ export default function App() {
       } else {
         await api.updateOrderStatus(id, newStatus);
       }
-      
+
       const ordersRes = await api.getAdminOrders().catch(() => []);
       setOrders(ordersRes.data || ordersRes || []);
-      
+
       addToast(`Đã chuyển đơn #${id} sang trạng thái "${newStatus}"!`, 'success');
     } catch (err) {
       addToast(err.message || 'Lỗi cập nhật trạng thái đơn hàng', 'error');
@@ -583,7 +611,7 @@ export default function App() {
 
 
   // --- FILTER SHOP SEARCH FLOW ---
-  const activeApprovedProducts = products.filter(p => p.status === 'approved');
+  const activeApprovedProducts = products;
 
   // Lọc sản phẩm ở trang Shop dựa trên các bộ lọc
   const filteredProducts = activeApprovedProducts.filter((prod) => {
@@ -634,9 +662,9 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      
+
       {/* 1. NAVBAR */}
-      <Navbar 
+      <Navbar
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         searchQuery={searchQuery}
@@ -679,8 +707,8 @@ export default function App() {
                   { name: "VÁY XINH", type: "vay", desc: "Floral Dress, Tennis Skirt", icon: "👗", count: products.filter(p => p.category === 'vay' && p.status === 'approved').length },
                   { name: "PHỤ KIỆN ĐỘC ĐÁO", type: "phukien", desc: "Cap, Tote Bag, Retro Socks", icon: "🧢", count: products.filter(p => p.category === 'phukien' && p.status === 'approved').length },
                 ].map((cat, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="category-card"
                     onClick={() => {
                       setFilterCategory(cat.type);
@@ -704,8 +732,8 @@ export default function App() {
                   <span className="section-subtitle">Chất lượng hàng đầu</span>
                   <h2 className="section-title">Sản Phẩm Bán Chạy</h2>
                 </div>
-                <a 
-                  href="#shop" 
+                <a
+                  href="#shop"
                   className="section-link"
                   onClick={(e) => { e.preventDefault(); setFilterCategory(''); setCurrentPage('shop'); }}
                 >
@@ -719,8 +747,8 @@ export default function App() {
                   .filter(p => p.isBestSeller)
                   .slice(0, 4)
                   .map((prod) => (
-                    <ProductCard 
-                      key={prod.id} 
+                    <ProductCard
+                      key={prod.id}
                       product={prod}
                       onSelectProduct={setSelectedProduct}
                       onAddToCart={handleAddToCart}
@@ -734,8 +762,8 @@ export default function App() {
 
             {/* NEW COLLECTION BANNER */}
             <section className="container" style={{ marginBottom: '60px' }}>
-              <div 
-                style={{ 
+              <div
+                style={{
                   background: 'linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url("https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200")',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
@@ -754,7 +782,7 @@ export default function App() {
                 <p style={{ maxWidth: '600px', margin: '0 auto 30px', color: 'rgba(255,255,255,0.8)', fontSize: '15px' }}>
                   Tôn vinh vẻ đẹp tự do của tuổi trẻ thông qua các đường cắt cúp tối giản, tone màu trung tính mộc mạc và chất liệu thoáng mát cho mùa hè sôi động.
                 </p>
-                <button 
+                <button
                   className="hero-btn"
                   onClick={() => { handleClearAllFilters(); setCurrentPage('shop'); }}
                 >
@@ -770,8 +798,8 @@ export default function App() {
                   <span className="section-subtitle font-outfit">Sản phẩm mới</span>
                   <h2 className="section-title">New Collection</h2>
                 </div>
-                <a 
-                  href="#shop" 
+                <a
+                  href="#shop"
                   className="section-link"
                   onClick={(e) => { e.preventDefault(); handleClearAllFilters(); setCurrentPage('shop'); }}
                 >
@@ -785,8 +813,8 @@ export default function App() {
                   .filter(p => p.isNew)
                   .slice(0, 4)
                   .map((prod) => (
-                    <ProductCard 
-                      key={prod.id} 
+                    <ProductCard
+                      key={prod.id}
                       product={prod}
                       onSelectProduct={setSelectedProduct}
                       onAddToCart={handleAddToCart}
@@ -838,7 +866,7 @@ export default function App() {
            ========================================================================= */}
         {!isAdminMode && currentPage === 'shop' && (
           <div className="container" style={{ marginTop: '40px' }}>
-            
+
             <div className="shop-layout">
               {/* Sidebar Filters */}
               <aside className="shop-sidebar animate-fade">
@@ -861,10 +889,10 @@ export default function App() {
                       { name: "Phụ kiện độc đáo", val: "phukien" }
                     ].map((c) => (
                       <label key={c.name} className="filter-checkbox-label">
-                        <input 
-                          type="radio" 
+                        <input
+                          type="radio"
                           name="category"
-                          checked={filterCategory === c.val} 
+                          checked={filterCategory === c.val}
                           onChange={() => setFilterCategory(c.val)}
                         />
                         <span>{c.name}</span>
@@ -923,10 +951,10 @@ export default function App() {
                       { name: "Trên 400.000 ₫", val: "400+" }
                     ].map((pr) => (
                       <label key={pr.name} className="filter-checkbox-label">
-                        <input 
-                          type="radio" 
+                        <input
+                          type="radio"
                           name="price-range"
-                          checked={filterPriceRange === pr.val} 
+                          checked={filterPriceRange === pr.val}
                           onChange={() => setFilterPriceRange(pr.val)}
                         />
                         <span>{pr.name}</span>
@@ -936,7 +964,7 @@ export default function App() {
                 </div>
 
                 {/* Clear filters button */}
-                <button 
+                <button
                   className="btn-secondary-outline"
                   onClick={handleClearAllFilters}
                   style={{ width: '100%', fontSize: '13px', padding: '10px 0', border: '1px solid #ddd', color: 'var(--secondary)' }}
@@ -948,7 +976,7 @@ export default function App() {
 
               {/* Shop Grid Area */}
               <div className="shop-content-panel">
-                
+
                 {/* Search query tag */}
                 {(filterCategory || filterSize || filterColor || filterPriceRange || searchQuery) && (
                   <div className="shop-active-filters animate-fade">
@@ -1002,8 +1030,8 @@ export default function App() {
                     </div>
                     <div className="products-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                       {filteredProducts.map((prod) => (
-                        <ProductCard 
-                          key={prod.id} 
+                        <ProductCard
+                          key={prod.id}
                           product={prod}
                           onSelectProduct={setSelectedProduct}
                           onAddToCart={handleAddToCart}
@@ -1025,9 +1053,9 @@ export default function App() {
            ========================================================================= */}
         {!isAdminMode && currentPage === 'about' && (
           <div className="container" style={{ marginTop: '40px' }}>
-            
+
             {/* About Hero */}
-            <div 
+            <div
               className="about-hero animate-fade"
               style={{ backgroundImage: `url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600")` }}
             >
@@ -1040,9 +1068,9 @@ export default function App() {
 
             {/* Brand Story */}
             <div className="about-story-layout">
-              <img 
-                src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800" 
-                alt="Lookbook" 
+              <img
+                src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800"
+                alt="Lookbook"
                 className="about-story-img"
               />
               <div className="about-story-text">
@@ -1130,7 +1158,7 @@ export default function App() {
                     {cart.map((item, idx) => (
                       <div key={idx} className="cart-item">
                         <img src={item.images[0]} alt={item.name} className="cart-item-img" />
-                        
+
                         <div className="cart-item-info">
                           <h4 className="cart-item-name">{item.name}</h4>
                           <div className="cart-item-meta">
@@ -1171,7 +1199,7 @@ export default function App() {
               {cart.length > 0 && (
                 <div className="cart-summary-card">
                   <h3 className="summary-title">Tóm Tắt Đơn Hàng</h3>
-                  
+
                   <div className="summary-row">
                     <span>Tạm tính</span>
                     <span style={{ color: 'var(--secondary)', fontWeight: 600 }}>{cartTotalPrice.toLocaleString('vi-VN')} ₫</span>
@@ -1233,45 +1261,45 @@ export default function App() {
                   <div className="form-grid">
                     <div className="admin-form-group">
                       <label className="input-label">Họ và tên người nhận *</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ví dụ: Nguyễn Văn A..." 
+                      <input
+                        type="text"
+                        placeholder="Ví dụ: Nguyễn Văn A..."
                         className="checkout-input"
                         value={checkoutName}
                         onChange={(e) => setCheckoutName(e.target.value)}
-                        required 
+                        required
                       />
                     </div>
 
                     <div className="admin-form-group">
                       <label className="input-label">Số điện thoại liên lạc *</label>
-                      <input 
-                        type="tel" 
-                        placeholder="Ví dụ: 0987654321..." 
+                      <input
+                        type="tel"
+                        placeholder="Ví dụ: 0987654321..."
                         className="checkout-input"
                         value={checkoutPhone}
                         onChange={(e) => setCheckoutPhone(e.target.value)}
-                        required 
+                        required
                       />
                     </div>
 
                     <div className="admin-form-group full-width">
                       <label className="input-label">Địa chỉ nhận hàng chi tiết *</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ví dụ: Số 123 Đường Nguyễn Huệ, Quận 1, TP.HCM..." 
+                      <input
+                        type="text"
+                        placeholder="Ví dụ: Số 123 Đường Nguyễn Huệ, Quận 1, TP.HCM..."
                         className="checkout-input"
                         value={checkoutAddress}
                         onChange={(e) => setCheckoutAddress(e.target.value)}
-                        required 
+                        required
                       />
                     </div>
 
                     <div className="admin-form-group full-width">
                       <label className="input-label">Ghi chú giao hàng (Nếu có)</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ví dụ: Giao hàng giờ hành chính / gọi trước khi giao..." 
+                      <input
+                        type="text"
+                        placeholder="Ví dụ: Giao hàng giờ hành chính / gọi trước khi giao..."
                         className="checkout-input"
                         value={checkoutNote}
                         onChange={(e) => setCheckoutNote(e.target.value)}
@@ -1286,13 +1314,13 @@ export default function App() {
                   </h3>
 
                   <div className="payment-options-group">
-                    <div 
+                    <div
                       className={`payment-option-card ${paymentMethod === 'COD' ? 'active' : ''}`}
                       onClick={() => setPaymentMethod('COD')}
                     >
-                      <input 
-                        type="radio" 
-                        name="payment" 
+                      <input
+                        type="radio"
+                        name="payment"
                         className="payment-radio"
                         checked={paymentMethod === 'COD'}
                         onChange={() => setPaymentMethod('COD')}
@@ -1303,13 +1331,13 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div 
+                    <div
                       className={`payment-option-card ${paymentMethod === 'Transfer' ? 'active' : ''}`}
                       onClick={() => setPaymentMethod('Transfer')}
                     >
-                      <input 
-                        type="radio" 
-                        name="payment" 
+                      <input
+                        type="radio"
+                        name="payment"
                         className="payment-radio"
                         checked={paymentMethod === 'Transfer'}
                         onChange={() => setPaymentMethod('Transfer')}
@@ -1324,10 +1352,10 @@ export default function App() {
                   {/* BANK TRANSFER DETAILS BOX */}
                   {paymentMethod === 'Transfer' && (
                     <div className="bank-transfer-details">
-                      <img 
-                        src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=JUSSTLIFE_PAYMENT" 
-                        alt="QR Code" 
-                        className="qr-code-img" 
+                      <img
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=JUSSTLIFE_PAYMENT"
+                        alt="QR Code"
+                        className="qr-code-img"
                       />
                       <div className="bank-info-lines">
                         <div style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>THÔNG TIN CHUYỂN KHOẢN :</div>
@@ -1340,8 +1368,8 @@ export default function App() {
                     </div>
                   )}
 
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="checkout-action-btn"
                     style={{ marginTop: '30px', padding: '16px' }}
                   >
@@ -1353,7 +1381,7 @@ export default function App() {
               {/* Order checkout bill list preview */}
               <div className="cart-summary-card">
                 <h3 className="summary-title">Đơn hàng của bạn</h3>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '300px', overflowY: 'auto', marginBottom: '20px', paddingRight: '6px' }}>
                   {cart.map((item, idx) => (
                     <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
@@ -1399,7 +1427,7 @@ export default function App() {
             <div style={{ background: 'white', padding: '40px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
               <h2 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '24px', color: 'var(--primary)' }}>Chính Sách Đổi Trả Dễ Dàng 7 Ngày</h2>
               <div style={{ width: '60px', height: '4px', background: 'var(--primary)', marginBottom: '30px' }}></div>
-              
+
               <p style={{ fontSize: '15px', color: 'var(--secondary-muted)', marginBottom: '20px', lineHeight: '1.8' }}>
                 Tại <strong>Jusstlife</strong>, chúng tôi luôn trân trọng sự tin dùng của khách hàng đối với các sản phẩm thời trang tối giản của chúng tôi. Để mang lại sự an tâm tuyệt đối khi mua sắm, chúng tôi cung cấp chính sách đổi trả hàng hóa linh hoạt và tận tâm như sau:
               </p>
@@ -1437,7 +1465,7 @@ export default function App() {
             <div style={{ background: 'white', padding: '40px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
               <h2 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '24px', color: 'var(--primary)' }}>Chính Sách Vận Chuyển & Giao Nhận</h2>
               <div style={{ width: '60px', height: '4px', background: 'var(--primary)', marginBottom: '30px' }}></div>
-              
+
               <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '20px 0 12px' }}>1. Phí Giao Hàng Toàn Quốc</h3>
               <ul style={{ paddingLeft: '20px', fontSize: '14px', color: 'var(--secondary-muted)', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: '1.6' }}>
                 <li>Miễn phí vận chuyển 100% cho mọi đơn đặt hàng có tổng giá trị thanh toán từ <strong>500.000 ₫</strong> trở lên.</li>
@@ -1471,7 +1499,7 @@ export default function App() {
             <div style={{ background: 'white', padding: '40px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
               <h2 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '24px', color: 'var(--primary)' }}>Chính Sách Bảo Mật Thông Tin</h2>
               <div style={{ width: '60px', height: '4px', background: 'var(--primary)', marginBottom: '30px' }}></div>
-              
+
               <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '20px 0 12px' }}>1. Mục Đích Thu Thập Dữ Liệu</h3>
               <p style={{ fontSize: '14px', color: 'var(--secondary-muted)', lineHeight: '1.6' }}>
                 Jusstlife cam kết bảo mật 100% thông tin cá nhân của khách hàng. Chúng tôi chỉ thu thập Tên, SĐT, Địa chỉ giao hàng để thực hiện quy trình đóng gói và vận chuyển kiện hàng đến tay bạn nhanh nhất có thể.
@@ -1510,9 +1538,9 @@ export default function App() {
 
               {/* SEARCH INPUT BAR */}
               <div style={{ display: 'flex', gap: '12px', maxWidth: '560px', marginBottom: '30px' }}>
-                <input 
-                  type="text" 
-                  placeholder="Nhập mã đơn hàng của bạn (Ví dụ: JUSST123456)..." 
+                <input
+                  type="text"
+                  placeholder="Nhập mã đơn hàng của bạn (Ví dụ: JUSST123456)..."
                   className="checkout-input"
                   value={trackingOrderId}
                   onChange={(e) => setTrackingOrderId(e.target.value.toUpperCase().trim())}
@@ -1532,12 +1560,12 @@ export default function App() {
                         key={ord.id}
                         onClick={() => setTrackingOrderId(ord.id)}
                         className="service-card"
-                        style={{ 
-                          padding: '10px 16px', 
-                          background: '#fff', 
-                          border: '1px solid var(--border-light)', 
-                          borderRadius: 'var(--radius-sm)', 
-                          fontSize: '13px', 
+                        style={{
+                          padding: '10px 16px',
+                          background: '#fff',
+                          border: '1px solid var(--border-light)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '13px',
                           fontWeight: 600,
                           cursor: 'pointer'
                         }}
@@ -1572,7 +1600,7 @@ export default function App() {
                 }
 
                 const s = matchedOrder.status; // Chờ xử lý, Đang giao, Đã giao, Hủy đơn
-                
+
                 // Trạng thái Stepper Journey
                 const isStep2Done = s === 'Đang giao' || s === 'Đã giao';
                 const isStep3Done = s === 'Đang giao' || s === 'Đã giao';
@@ -1583,7 +1611,7 @@ export default function App() {
 
                 return (
                   <div className="animate-fade" style={{ border: '1px solid var(--border-light)', borderRadius: 'var(--radius-lg)', padding: '30px', background: '#fdfdfd' }}>
-                    
+
                     {/* Header đơn */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', borderBottom: '1px solid var(--border-light)', paddingBottom: '20px', marginBottom: '30px', gap: '16px' }}>
                       <div>
@@ -1614,16 +1642,16 @@ export default function App() {
                     ) : (
                       <div style={{ marginBottom: '40px' }}>
                         <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '24px', color: 'var(--secondary)' }}>Hành Trình Vận Chuyển:</h4>
-                        
+
                         {/* Stepper Grid Row */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', overflowX: 'auto', paddingBottom: '10px' }}>
-                          
+
                           {/* Line Background */}
                           <div style={{ position: 'absolute', top: '16px', left: '12.5%', width: '75%', height: '3px', background: '#e0e0e0', zIndex: 1 }}>
                             {/* Fill Line */}
-                            <div style={{ 
-                              height: '100%', 
-                              background: 'var(--primary-gradient)', 
+                            <div style={{
+                              height: '100%',
+                              background: 'var(--primary-gradient)',
                               width: s === 'Đã giao' ? '100%' : s === 'Đang giao' ? '66.6%' : '33.3%',
                               transition: 'all 0.5s ease'
                             }}></div>
@@ -1631,14 +1659,14 @@ export default function App() {
 
                           {/* Step 1: Nhận đơn */}
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, position: 'relative', textAlign: 'center' }}>
-                            <div style={{ 
-                              width: '36px', 
-                              height: '36px', 
-                              borderRadius: '50%', 
-                              background: '#4caf50', 
-                              color: 'white', 
-                              display: 'flex', 
-                              alignItems: 'center', 
+                            <div style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '50%',
+                              background: '#4caf50',
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
                               justifyContent: 'center',
                               boxShadow: '0 4px 10px rgba(76,175,80,0.3)',
                               marginBottom: '10px'
@@ -1653,14 +1681,14 @@ export default function App() {
 
                           {/* Step 2: Đóng gói */}
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, position: 'relative', textAlign: 'center' }}>
-                            <div style={{ 
-                              width: '36px', 
-                              height: '36px', 
-                              borderRadius: '50%', 
-                              background: isStep2Done ? '#4caf50' : (isStep2Active ? '#ff9800' : '#e0e0e0'), 
-                              color: 'white', 
-                              display: 'flex', 
-                              alignItems: 'center', 
+                            <div style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '50%',
+                              background: isStep2Done ? '#4caf50' : (isStep2Active ? '#ff9800' : '#e0e0e0'),
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
                               justifyContent: 'center',
                               boxShadow: isStep2Active ? '0 4px 10px rgba(255,152,0,0.3)' : '',
                               marginBottom: '10px'
@@ -1675,14 +1703,14 @@ export default function App() {
 
                           {/* Step 3: Đang giao */}
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, position: 'relative', textAlign: 'center' }}>
-                            <div style={{ 
-                              width: '36px', 
-                              height: '36px', 
-                              borderRadius: '50%', 
-                              background: isStep3Done ? '#4caf50' : (isStep3Active ? '#ff9800' : '#e0e0e0'), 
-                              color: 'white', 
-                              display: 'flex', 
-                              alignItems: 'center', 
+                            <div style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '50%',
+                              background: isStep3Done ? '#4caf50' : (isStep3Active ? '#ff9800' : '#e0e0e0'),
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
                               justifyContent: 'center',
                               boxShadow: isStep3Active ? '0 4px 10px rgba(255,152,0,0.3)' : '',
                               marginBottom: '10px'
@@ -1697,14 +1725,14 @@ export default function App() {
 
                           {/* Step 4: Đã giao */}
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, position: 'relative', textAlign: 'center' }}>
-                            <div style={{ 
-                              width: '36px', 
-                              height: '36px', 
-                              borderRadius: '50%', 
-                              background: isStep4Done ? '#4caf50' : '#e0e0e0', 
-                              color: 'white', 
-                              display: 'flex', 
-                              alignItems: 'center', 
+                            <div style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '50%',
+                              background: isStep4Done ? '#4caf50' : '#e0e0e0',
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
                               justifyContent: 'center',
                               boxShadow: isStep4Done ? '0 4px 10px rgba(76,175,80,0.3)' : '',
                               marginBottom: '10px'
@@ -1767,7 +1795,7 @@ export default function App() {
            PORTAL: PROFILE EDITING PAGE
            ========================================================================= */}
         {!isAdminMode && currentPage === 'profile' && currentUser && (
-          <ProfilePage 
+          <ProfilePage
             currentUser={currentUser}
             onUpdateProfile={handleUpdateProfile}
             onGoBack={() => {
@@ -1789,7 +1817,7 @@ export default function App() {
            ========================================================================= */}
         {isAdminMode && (
           currentUser && (currentUser.role === 'manager') ? (
-            <AdminPortal 
+            <AdminPortal
               products={products}
               orders={orders}
               onAddProduct={handleAddProduct}
@@ -1811,15 +1839,15 @@ export default function App() {
                 Trang này chỉ dành cho <strong>Quản Lý</strong> cửa hàng Jusstlife. Vui lòng đăng nhập đúng tài khoản được phân quyền để quản trị hệ thống.
               </p>
               <div style={{ display: 'flex', gap: '14px' }}>
-                <button 
-                  className="btn-primary-filled" 
+                <button
+                  className="btn-primary-filled"
                   onClick={() => setShowLoginModal(true)}
                   style={{ padding: '10px 24px' }}
                 >
                   Đăng Nhập Ngay
                 </button>
-                <button 
-                  className="btn-admin-cancel" 
+                <button
+                  className="btn-admin-cancel"
                   onClick={() => { setIsAdminMode(false); setCurrentPage('home'); }}
                   style={{ padding: '10px 24px' }}
                 >
@@ -1844,10 +1872,10 @@ export default function App() {
               </p>
               <div className="social-links">
                 <a href="https://facebook.com" className="social-btn" title="Facebook">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
                 </a>
                 <a href="https://instagram.com" className="social-btn" title="Instagram">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
                 </a>
                 <a href="https://tiktok.com" className="social-btn" title="TikTok"><Sparkles size={18} /></a>
               </div>
@@ -1903,10 +1931,10 @@ export default function App() {
       {/* =========================================================================
          POPUP MODALS & DIALOGS
          ========================================================================= */}
-      
+
       {/* A. PRODUCT DETAIL MODAL */}
       {selectedProduct && (
-        <ProductDetailModal 
+        <ProductDetailModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
           onAddToCart={(cartItem) => {
@@ -1928,7 +1956,7 @@ export default function App() {
             </div>
             <h2>ĐẶT HÀNG THÀNH CÔNG!</h2>
             <p style={{ margin: '10px 0 20px', lineHeight: '1.6' }}>
-              Cảm ơn bạn đã lựa chọn mua sắm tại <strong>Jusstlife</strong>! Mã đơn đặt hàng của bạn là <strong style={{ color: 'var(--primary)', fontSize: '16px' }}>#{lastOrderId}</strong>. 
+              Cảm ơn bạn đã lựa chọn mua sắm tại <strong>Jusstlife</strong>! Mã đơn đặt hàng của bạn là <strong style={{ color: 'var(--primary)', fontSize: '16px' }}>#{lastOrderId}</strong>.
               <br />
               Đơn hàng đã được chuyển đến Cổng Quản Trị để chuẩn bị và giao hàng cho bạn trong thời gian sớm nhất.
             </p>
@@ -1941,17 +1969,17 @@ export default function App() {
 
       {/* C. LOGIN MODAL POPUP */}
       {showLoginModal && (
-        <LoginModal 
+        <LoginModal
+          isOpen={showLoginModal}
           onClose={() => setShowLoginModal(false)}
           onLogin={handleLogin}
           onRegister={handleRegister}
-          demoUsers={DEMO_USERS}
         />
       )}
 
 
       {/* E. SLIDE-OVER WISHLIST DRAWER POPUP */}
-      <WishlistModal 
+      <WishlistModal
         isOpen={showWishlistModal}
         onClose={() => setShowWishlistModal(false)}
         wishlist={wishlist}
@@ -1964,7 +1992,7 @@ export default function App() {
       />
 
       {/* D. UNIFIED ALERT & CONFIRM MODAL POPUP */}
-      <AlertModal 
+      <AlertModal
         isOpen={alertConfig.isOpen}
         title={alertConfig.title}
         text={alertConfig.text}

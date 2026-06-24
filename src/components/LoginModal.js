@@ -1,264 +1,338 @@
-import React, { useState } from 'react';
-import { X, Lock, Mail, ShieldAlert, Sparkles, UserCheck, User, Phone } from 'lucide-react';
+import React, { useState } from "react";
+import { X, Mail, Lock, User, Phone, Sparkles, ArrowRight, Key } from "lucide-react";
+import { api } from "../api/login.js";
 
-export default function LoginModal({ onClose, onLogin, onRegister, demoUsers }) {
-  const [mode, setMode] = useState('login'); // 'login' or 'register'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+export default function LoginModal({
+  isOpen,
+  onClose,
+  onLogin,
+  onRegister,
+}) {
+  const [viewMode, setViewMode] = useState('login'); // 'login', 'register', 'reset'
 
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: "",
+  });
 
-  const handleSubmit = (e) => {
+  const [registerData, setRegisterData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [resetData, setResetData] = useState({
+    token: "",
+    newPassword: "",
+  });
+
+  if (!isOpen) return null;
+
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg('');
+    await onLogin(loginData.email, loginData.password);
+  };
 
-    if (mode === 'login') {
-      if (!email.trim() || !password.trim()) {
-        setErrorMsg('Vui lòng điền đầy đủ Email và Mật khẩu!');
-        return;
-      }
-      onLogin(email, password);
-    } else {
-      if (!email.trim() || !password.trim() || !fullName.trim() || !phone.trim()) {
-        setErrorMsg('Vui lòng điền đầy đủ thông tin!');
-        return;
-      }
-      onRegister({ email, password, fullName, phone });
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    if (registerData.password !== registerData.confirmPassword) {
+      alert("Mật khẩu xác nhận không khớp");
+      return;
+    }
+    await onRegister(registerData);
+  };
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.resetPassword(resetData);
+      alert("Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.");
+      setViewMode('login');
+      setResetData({ token: "", newPassword: "" });
+    } catch (err) {
+      alert(err.message || "Đặt lại mật khẩu thất bại");
     }
   };
 
+  const inputGroupStyle = {
+    position: 'relative',
+    marginBottom: '16px'
+  };
 
+  const iconStyle = {
+    position: 'absolute',
+    left: '16px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: 'var(--secondary-muted)',
+    pointerEvents: 'none'
+  };
 
-  // Đăng nhập nhanh 1-Click
-  const handleQuickLogin = (user) => {
-    setEmail(user.email);
-    setPassword(user.password);
-    setErrorMsg('');
-    
-    // Tự động đăng nhập luôn sau 200ms để tăng trải nghiệm mượt mà
-    setTimeout(() => {
-      onLogin(user.email, user.password);
-    }, 200);
+  const renderBannerText = () => {
+    if (viewMode === 'register') return "Đăng ký thành viên mới";
+    if (viewMode === 'reset') return "Khôi phục tài khoản";
+    return "Chào mừng trở lại! Đăng nhập để tiếp tục.";
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div 
-        className="product-detail-modal animate-pop" 
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '460px', borderRadius: 'var(--radius-lg)' }}
-      >
-        {/* Close Button */}
-        <button className="modal-close-btn" onClick={onClose}>
-          <X size={18} />
-        </button>
-
-        <div style={{ padding: '36px' }}>
-          {/* Header & Tabs */}
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <Sparkles size={26} />
-            </div>
-            <h2 style={{ fontSize: '24px', fontWeight: 800 }}>{mode === 'login' ? 'ĐĂNG NHẬP' : 'ĐĂNG KÝ'} JUSSTLIFE</h2>
-            <p style={{ fontSize: '13px', color: 'var(--secondary-muted)', marginTop: '4px' }}>
-              Hãy gia nhập cùng cộng đồng thời trang Jusstlife
-            </p>
+    <div className="modal-overlay" style={{ backdropFilter: 'blur(5px)', zIndex: 1000 }}>
+      <style>{`
+        .modal-input-premium {
+          width: 100%;
+          padding: 14px 16px 14px 44px;
+          background: rgba(0, 0, 0, 0.03);
+          border: 1px solid transparent;
+          border-radius: 12px;
+          font-size: 14px;
+          color: var(--secondary);
+          transition: all 0.3s ease;
+          box-sizing: border-box;
+        }
+        .modal-input-premium:focus {
+          background: white;
+          border-color: var(--primary);
+          box-shadow: 0 0 0 4px var(--primary-light);
+          outline: none;
+        }
+        .btn-premium-login {
+          width: 100%;
+          padding: 14px;
+          background: var(--secondary);
+          color: white;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          border: none;
+          transition: all 0.3s ease;
+        }
+        .btn-premium-login:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+          background: #000;
+        }
+        .btn-premium-register {
+          width: 100%;
+          padding: 14px;
+          background: var(--primary-gradient);
+          color: white;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          border: none;
+          margin-top: 10px;
+          transition: all 0.3s ease;
+        }
+        .btn-premium-register:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 15px rgba(255,87,34,0.3);
+        }
+      `}</style>
+      
+      <div className="login-modal animate-pop" style={{ padding: 0, width: '440px', overflow: 'hidden', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.08)' }}>
+        
+        {/* Banner */}
+        <div style={{ background: 'var(--primary-gradient)', padding: '30px 40px', position: 'relative', color: 'white', textAlign: 'center' }}>
+          <button
+            onClick={onClose}
+            style={{ position: 'absolute', top: '16px', right: '16px', color: 'white', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+          >
+            <X size={18} />
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+            <Sparkles size={24} />
+            <h2 style={{ margin: 0, fontSize: '24px', letterSpacing: '-0.5px', color: 'white', fontFamily: 'var(--font-title)' }}>JUSSTLIFE</h2>
           </div>
+          <p style={{ margin: 0, fontSize: '13px', opacity: 0.9 }}>
+            {renderBannerText()}
+          </p>
+        </div>
 
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-            <button 
-              type="button" 
-              style={{ flex: 1, padding: '10px', fontWeight: 700, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)', background: mode === 'login' ? 'var(--primary)' : 'transparent', color: mode === 'login' ? 'white' : 'var(--secondary-muted)' }}
-              onClick={() => { setMode('login'); setErrorMsg(''); }}
-            >
-              Đăng Nhập
-            </button>
-            <button 
-              type="button" 
-              style={{ flex: 1, padding: '10px', fontWeight: 700, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)', background: mode === 'register' ? 'var(--primary)' : 'transparent', color: mode === 'register' ? 'white' : 'var(--secondary-muted)' }}
-              onClick={() => { setMode('register'); setErrorMsg(''); }}
-            >
-              Đăng Ký Mới
-            </button>
-          </div>
+        {/* Form Content */}
+        <div style={{ padding: '40px' }}>
+          {viewMode === 'login' && (
+            <form onSubmit={handleLoginSubmit}>
+              <div style={inputGroupStyle}>
+                <Mail size={18} style={iconStyle} />
+                <input
+                  type="email"
+                  placeholder="Địa chỉ Email"
+                  className="modal-input-premium"
+                  value={loginData.email}
+                  onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                  required
+                />
+              </div>
 
+              <div style={inputGroupStyle}>
+                <Lock size={18} style={iconStyle} />
+                <input
+                  type="password"
+                  placeholder="Mật khẩu"
+                  className="modal-input-premium"
+                  value={loginData.password}
+                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                  required
+                />
+              </div>
 
-          {/* Error Message */}
-          {errorMsg && (
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              background: '#ffebee', 
-              color: '#c62828', 
-              padding: '12px 16px', 
-              borderRadius: 'var(--radius-md)', 
-              fontSize: '13px', 
-              fontWeight: 600,
-              marginBottom: '20px'
-            }}>
-              <ShieldAlert size={16} />
-              <span>{errorMsg}</span>
-            </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
+                <span 
+                  style={{ fontSize: '12px', color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
+                  onClick={() => setViewMode('reset')}
+                >
+                  Quên mật khẩu?
+                </span>
+              </div>
+
+              <button type="submit" className="btn-premium-login">
+                Đăng nhập <ArrowRight size={18} />
+              </button>
+
+              <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--secondary-muted)' }}>
+                Chưa có tài khoản?{" "}
+                <span
+                  style={{ color: 'var(--primary)', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => setViewMode('register')}
+                >
+                  Đăng ký ngay
+                </span>
+              </div>
+            </form>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {mode === 'register' && (
-              <>
-                <div className="admin-form-group">
-                  <label className="input-label" style={{ fontSize: '13px' }}>Họ và tên *</label>
-                  <div style={{ position: 'relative' }}>
-                    <User size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-muted)' }} />
-                    <input 
-                      type="text" 
-                      placeholder="Họ và tên của bạn" 
-                      className="checkout-input" 
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      style={{ paddingLeft: '40px' }}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="admin-form-group">
-                  <label className="input-label" style={{ fontSize: '13px' }}>Số điện thoại *</label>
-                  <div style={{ position: 'relative' }}>
-                    <Phone size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-muted)' }} />
-                    <input 
-                      type="tel" 
-                      placeholder="0987654321" 
-                      className="checkout-input" 
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      style={{ paddingLeft: '40px' }}
-                      required
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            <div className="admin-form-group">
-
-              <label className="input-label" style={{ fontSize: '13px' }}>Địa chỉ Email *</label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-muted)' }} />
-                <input 
-                  type="email" 
-                  placeholder="name@example.com" 
-                  className="checkout-input" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={{ paddingLeft: '40px' }}
+          {viewMode === 'register' && (
+            <form onSubmit={handleRegisterSubmit}>
+              <div style={inputGroupStyle}>
+                <User size={18} style={iconStyle} />
+                <input
+                  type="text"
+                  placeholder="Họ và tên"
+                  className="modal-input-premium"
+                  value={registerData.fullName}
+                  onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
                   required
                 />
               </div>
-            </div>
 
-            <div className="admin-form-group">
-              <label className="input-label" style={{ fontSize: '13px' }}>Mật khẩu bảo mật *</label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-muted)' }} />
-                <input 
-                  type="password" 
-                  placeholder="••••••••" 
-                  className="checkout-input" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={{ paddingLeft: '40px' }}
+              <div style={inputGroupStyle}>
+                <Mail size={18} style={iconStyle} />
+                <input
+                  type="email"
+                  placeholder="Địa chỉ Email"
+                  className="modal-input-premium"
+                  value={registerData.email}
+                  onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                   required
                 />
               </div>
-            </div>
 
-            <button 
-              type="submit" 
-              className="checkout-action-btn"
-              style={{ padding: '12px', marginTop: '6px' }}
-            >
-              {mode === 'login' ? 'Đăng Nhập Hệ Thống' : 'Hoàn Tất Đăng Ký'}
-            </button>
+              <div style={inputGroupStyle}>
+                <Phone size={18} style={iconStyle} />
+                <input
+                  type="text"
+                  placeholder="Số điện thoại"
+                  className="modal-input-premium"
+                  value={registerData.phone}
+                  onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                  required
+                />
+              </div>
 
-          </form>
+              <div style={inputGroupStyle}>
+                <Lock size={18} style={iconStyle} />
+                <input
+                  type="password"
+                  placeholder="Mật khẩu"
+                  className="modal-input-premium"
+                  value={registerData.password}
+                  onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                  required
+                />
+              </div>
 
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0', gap: '10px' }}>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }}></div>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--secondary-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Trải nghiệm nhanh (Demo)
-            </span>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }}></div>
-          </div>
+              <div style={inputGroupStyle}>
+                <Lock size={18} style={iconStyle} />
+                <input
+                  type="password"
+                  placeholder="Xác nhận mật khẩu"
+                  className="modal-input-premium"
+                  value={registerData.confirmPassword}
+                  onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                  required
+                />
+              </div>
 
-          {/* Quick Demo Login Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {demoUsers.map((user) => {
-              let roleBadgeColor = 'var(--primary)'; // customer
-              let roleBg = 'var(--primary-light)';
-              if (user.role === 'manager') {
-                roleBadgeColor = '#2e7d32'; // manager
-                roleBg = '#e8f5e9';
-              } else if (user.role === 'customer') {
-                roleBadgeColor = 'var(--primary)'; // customer
-                roleBg = 'var(--primary-light)';
-              }
+              <button type="submit" className="btn-premium-register">
+                Tạo tài khoản <ArrowRight size={18} />
+              </button>
 
-              return (
-                <button
-                  key={user.role}
-                  type="button"
-                  className="service-card"
-                  onClick={() => handleQuickLogin(user)}
-                  style={{ 
-                    padding: '12px 16px', 
-                    borderRadius: 'var(--radius-md)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    border: '1px solid var(--border-light)',
-                    background: '#fff',
-                    textAlign: 'left'
-                  }}
+              <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--secondary-muted)' }}>
+                Đã có tài khoản?{" "}
+                <span
+                  style={{ color: 'var(--secondary)', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => setViewMode('login')}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ 
-                      width: '32px', 
-                      height: '32px', 
-                      borderRadius: '50%', 
-                      background: roleBg, 
-                      color: roleBadgeColor, 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center' 
-                    }}>
-                      <UserCheck size={16} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: 700 }}>{user.name}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--secondary-muted)' }}>Mật khẩu: {user.password}</div>
-                    </div>
-                  </div>
+                  Đăng nhập
+                </span>
+              </div>
+            </form>
+          )}
 
-                  <span style={{ 
-                    fontSize: '10px', 
-                    fontWeight: 700, 
-                    color: roleBadgeColor, 
-                    background: roleBg, 
-                    padding: '4px 8px', 
-                    borderRadius: '4px',
-                    textTransform: 'uppercase'
-                  }}>
-                    {user.role === 'manager' ? 'Quản lý' : 'Khách'}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          {viewMode === 'reset' && (
+            <form onSubmit={handleResetSubmit}>
+              <div style={inputGroupStyle}>
+                <Key size={18} style={iconStyle} />
+                <input
+                  type="text"
+                  placeholder="Mã xác nhận (Token)"
+                  className="modal-input-premium"
+                  value={resetData.token}
+                  onChange={(e) => setResetData({ ...resetData, token: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div style={inputGroupStyle}>
+                <Lock size={18} style={iconStyle} />
+                <input
+                  type="password"
+                  placeholder="Mật khẩu mới"
+                  className="modal-input-premium"
+                  value={resetData.newPassword}
+                  onChange={(e) => setResetData({ ...resetData, newPassword: e.target.value })}
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn-premium-login" style={{ marginTop: '24px' }}>
+                Xác nhận đổi mật khẩu <ArrowRight size={18} />
+              </button>
+
+              <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--secondary-muted)' }}>
+                <span
+                  style={{ color: 'var(--secondary)', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => setViewMode('login')}
+                >
+                  Quay lại đăng nhập
+                </span>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>

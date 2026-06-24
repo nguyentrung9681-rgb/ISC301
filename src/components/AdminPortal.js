@@ -29,9 +29,6 @@ export default function AdminPortal({
   showAlert
 }) {
   const [activeMenu, setActiveMenu] = useState('products-list'); // default tab
-  const [rejectProduct, setRejectProduct] = useState(null);
-  const [rejectReasonInput, setRejectReasonInput] = useState('');
-
   // FORM STATES
   const [prodName, setProdName] = useState('');
   const [prodPrice, setProdPrice] = useState('');
@@ -174,21 +171,6 @@ export default function AdminPortal({
     setActiveMenu('products-list');
   };
 
-  // Reject Submit
-  const handleRejectSubmit = () => {
-    if (!rejectReasonInput.trim()) {
-      if (showAlert) {
-        showAlert('THIẾU THÔNG TIN', 'Vui lòng nhập lý do từ chối thiết kế sản phẩm này!', 'warning');
-      } else {
-        alert("Vui lòng nhập lý do từ chối!");
-      }
-      return;
-    }
-    onUpdateProductStatus(rejectProduct.id, 'rejected', rejectReasonInput.trim());
-    setRejectProduct(null);
-    setRejectReasonInput('');
-  };
-
   const handleRoleChange = (role) => {
     setCurrentRole(role);
   };
@@ -198,8 +180,7 @@ export default function AdminPortal({
     .filter(o => o.status === 'Đã giao')
     .reduce((sum, o) => sum + o.totalPrice, 0);
 
-  const pendingApprovalCount = products.filter(p => p.status === 'pending').length;
-  const activeProductsCount = products.filter(p => p.status === 'approved').length;
+  const activeProductsCount = products.length;
   const outOfStockCount = products.filter(p => p.inventory < 5 && p.status === 'approved').length;
 
   return (
@@ -224,14 +205,6 @@ export default function AdminPortal({
           >
             <BarChart3 size={16} />
             <span>Thống Kê Doanh Thu</span>
-          </button>
-
-          <button 
-            className={`admin-menu-item ${activeMenu === 'approve-list' ? 'active' : ''}`}
-            onClick={() => setActiveMenu('approve-list')}
-          >
-            <CheckSquare size={16} style={{ color: pendingApprovalCount > 0 ? 'var(--primary)' : 'inherit' }} />
-            <span>Duyệt Sản Phẩm ({pendingApprovalCount})</span>
           </button>
 
           <button 
@@ -354,7 +327,7 @@ export default function AdminPortal({
             {/* Quick Tips */}
             <div style={{ display: 'flex', gap: '16px', padding: '20px', background: '#e3f2fd', borderRadius: 'var(--radius-md)', color: '#0d47a1', fontSize: '14px', alignItems: 'center' }}>
               <InfoIcon />
-              <span><strong>Mẹo Quản Lý:</strong> Kiểm tra phần "Duyệt sản phẩm" thường xuyên để xét duyệt kịp thời các mẫu thiết kế mới gửi lên. Cửa hàng sẽ tự động cập nhật sản phẩm ngay sau khi bạn click Phê duyệt.</span>
+              <span><strong>Mẹo Quản Lý:</strong> Theo dõi các thông số hệ thống để điều chỉnh chiến lược kinh doanh phù hợp.</span>
             </div>
           </div>
         )}
@@ -385,7 +358,6 @@ export default function AdminPortal({
                   <th>Kho hàng</th>
                   <th>Danh mục</th>
                   <th>Người tạo</th>
-                  <th>Trạng thái</th>
                   <th style={{ textAlign: 'right' }}>Hành động</th>
                 </tr>
               </thead>
@@ -423,18 +395,6 @@ export default function AdminPortal({
                           </td>
                           <td>{prod.categoryLabel}</td>
                           <td>{prod.createdBy === 'manager' ? 'Quản lý' : 'Khác'}</td>
-                          <td>
-                            <div className="prices-box">
-                              <span className={`admin-status-pill ${prod.status}`}>
-                                {prod.status === 'approved' ? 'Đang Bán' : prod.status === 'pending' ? 'Chờ Duyệt' : 'Bị Từ Chối'}
-                              </span>
-                              {prod.status === 'rejected' && prod.rejectReason && (
-                                <span style={{ fontSize: '10px', color: '#c62828', marginTop: '4px', maxWidth: '140px', wordBreak: 'break-word' }}>
-                                  Lý do: "{prod.rejectReason}"
-                                </span>
-                              )}
-                            </div>
-                          </td>
                           <td style={{ textAlign: 'right' }}>
                             {isOwnerOrManager ? (
                               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -460,88 +420,6 @@ export default function AdminPortal({
                         </tr>
                       );
                     })
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* =========================================================================
-           TAB: PENDING APPROVAL LIST (MANAGER ONLY)
-           ========================================================================= */}
-        {activeMenu === 'approve-list' && (
-          <div>
-            <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '20px' }}>
-              Xét Duyệt Thiết Kế Mới ({pendingApprovalCount})
-            </h2>
-
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Sản phẩm</th>
-                  <th>Phân loại</th>
-                  <th>Chi tiết màu / size</th>
-                  <th>Giá Đề Xuất</th>
-                  <th>Kho mẫu</th>
-                  <th>Hành động Duyệt</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.filter(p => p.status === 'pending').length === 0 ? (
-                  <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px 0', color: '#2e7d32', fontWeight: 600 }}>
-                      🎉 Tuyệt vời! Không có sản phẩm nào đang chờ phê duyệt.
-                    </td>
-                  </tr>
-                ) : (
-                  products
-                    .filter(p => p.status === 'pending')
-                    .map((prod) => (
-                      <tr key={prod.id}>
-                        <td>
-                          <div className="admin-table-product-cell">
-                            <img src={prod.images[0]} alt="" className="admin-table-product-img" />
-                            <div>
-                              <div style={{ fontWeight: 600 }}>{prod.name}</div>
-                              <div style={{ fontSize: '11px', color: 'var(--secondary-muted)', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', maxWidth: '200px' }}>
-                                Mô tả: {prod.description}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>{prod.categoryLabel} ({prod.gender})</td>
-                        <td>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
-                            <div>Size: {prod.sizes.join(', ')}</div>
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                              Màu: {prod.colors.map(c => c.name).join(', ')}
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ fontWeight: 700, color: 'var(--primary)' }}>
-                          {prod.price.toLocaleString('vi-VN')} ₫
-                        </td>
-                        <td style={{ fontWeight: 600 }}>{prod.inventory} cái</td>
-                        <td>
-                          <div className="approval-action-cell">
-                            <button 
-                              className="btn-approve"
-                              onClick={() => onUpdateProductStatus(prod.id, 'approved', '')}
-                            >
-                              <Check size={14} style={{ marginRight: '2px' }} />
-                              Duyệt Bán
-                            </button>
-                            <button 
-                              className="btn-reject"
-                              onClick={() => setRejectProduct(prod)}
-                            >
-                              <X size={14} style={{ marginRight: '2px' }} />
-                              Từ Chối
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
                 )}
               </tbody>
             </table>
@@ -863,42 +741,6 @@ export default function AdminPortal({
         )}
       </div>
 
-      {/* REJECT DIALOG POPUP MODAL */}
-      {rejectProduct && (
-        <div className="reject-dialog-overlay">
-          <div className="reject-dialog">
-            <h3 style={{ fontSize: '18px', fontWeight: 700 }}>Từ Chối Duyệt Sản Phẩm</h3>
-            <p style={{ fontSize: '13px', color: 'var(--secondary-muted)', margin: '8px 0 16px' }}>
-              Nhập lý do cụ thể để chỉnh sửa mẫu <strong>"{rejectProduct.name}"</strong>:
-            </p>
-
-            <textarea 
-              className="admin-textarea"
-              placeholder="Ví dụ: Hình ảnh quá mờ / Giá bán chưa chính xác theo catalog..."
-              value={rejectReasonInput}
-              onChange={(e) => setRejectReasonInput(e.target.value)}
-              required
-            ></textarea>
-
-            <div className="reject-dialog-actions">
-              <button 
-                className="btn-admin-cancel"
-                onClick={() => { setRejectProduct(null); setRejectReasonInput(''); }}
-                style={{ padding: '8px 16px' }}
-              >
-                Hủy
-              </button>
-              <button 
-                className="btn-admin-submit"
-                onClick={handleRejectSubmit}
-                style={{ padding: '8px 20px', background: 'var(--primary)' }}
-              >
-                Gửi từ chối
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
