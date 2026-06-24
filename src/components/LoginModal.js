@@ -1,31 +1,35 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, ShieldAlert, Sparkles, UserCheck } from 'lucide-react';
+import { X, Lock, Mail, ShieldAlert, Sparkles, UserCheck, User, Phone } from 'lucide-react';
 
-export default function LoginModal({ onClose, onLogin, demoUsers }) {
+export default function LoginModal({ onClose, onLogin, onRegister, demoUsers }) {
+  const [mode, setMode] = useState('login'); // 'login' or 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!email.trim() || !password.trim()) {
-      setErrorMsg('Vui lòng điền đầy đủ Email và Mật khẩu!');
-      return;
-    }
-
-    // Xác thực thông tin đăng nhập
-    const matchedUser = demoUsers.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase().trim() && u.password === password
-    );
-
-    if (matchedUser) {
-      onLogin(matchedUser);
+    if (mode === 'login') {
+      if (!email.trim() || !password.trim()) {
+        setErrorMsg('Vui lòng điền đầy đủ Email và Mật khẩu!');
+        return;
+      }
+      onLogin(email, password);
     } else {
-      setErrorMsg('Email hoặc Mật khẩu chưa chính xác!');
+      if (!email.trim() || !password.trim() || !fullName.trim() || !phone.trim()) {
+        setErrorMsg('Vui lòng điền đầy đủ thông tin!');
+        return;
+      }
+      onRegister({ email, password, fullName, phone });
     }
   };
+
+
 
   // Đăng nhập nhanh 1-Click
   const handleQuickLogin = (user) => {
@@ -35,7 +39,7 @@ export default function LoginModal({ onClose, onLogin, demoUsers }) {
     
     // Tự động đăng nhập luôn sau 200ms để tăng trải nghiệm mượt mà
     setTimeout(() => {
-      onLogin(user);
+      onLogin(user.email, user.password);
     }, 200);
   };
 
@@ -52,16 +56,34 @@ export default function LoginModal({ onClose, onLogin, demoUsers }) {
         </button>
 
         <div style={{ padding: '36px' }}>
-          {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          {/* Header & Tabs */}
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
               <Sparkles size={26} />
             </div>
-            <h2 style={{ fontSize: '24px', fontWeight: 800 }}>ĐĂNG NHẬP JUSSTLIFE</h2>
+            <h2 style={{ fontSize: '24px', fontWeight: 800 }}>{mode === 'login' ? 'ĐĂNG NHẬP' : 'ĐĂNG KÝ'} JUSSTLIFE</h2>
             <p style={{ fontSize: '13px', color: 'var(--secondary-muted)', marginTop: '4px' }}>
               Hãy gia nhập cùng cộng đồng thời trang Jusstlife
             </p>
           </div>
+
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+            <button 
+              type="button" 
+              style={{ flex: 1, padding: '10px', fontWeight: 700, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)', background: mode === 'login' ? 'var(--primary)' : 'transparent', color: mode === 'login' ? 'white' : 'var(--secondary-muted)' }}
+              onClick={() => { setMode('login'); setErrorMsg(''); }}
+            >
+              Đăng Nhập
+            </button>
+            <button 
+              type="button" 
+              style={{ flex: 1, padding: '10px', fontWeight: 700, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)', background: mode === 'register' ? 'var(--primary)' : 'transparent', color: mode === 'register' ? 'white' : 'var(--secondary-muted)' }}
+              onClick={() => { setMode('register'); setErrorMsg(''); }}
+            >
+              Đăng Ký Mới
+            </button>
+          </div>
+
 
           {/* Error Message */}
           {errorMsg && (
@@ -84,7 +106,44 @@ export default function LoginModal({ onClose, onLogin, demoUsers }) {
 
           {/* Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {mode === 'register' && (
+              <>
+                <div className="admin-form-group">
+                  <label className="input-label" style={{ fontSize: '13px' }}>Họ và tên *</label>
+                  <div style={{ position: 'relative' }}>
+                    <User size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-muted)' }} />
+                    <input 
+                      type="text" 
+                      placeholder="Họ và tên của bạn" 
+                      className="checkout-input" 
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      style={{ paddingLeft: '40px' }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="input-label" style={{ fontSize: '13px' }}>Số điện thoại *</label>
+                  <div style={{ position: 'relative' }}>
+                    <Phone size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-muted)' }} />
+                    <input 
+                      type="tel" 
+                      placeholder="0987654321" 
+                      className="checkout-input" 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      style={{ paddingLeft: '40px' }}
+                      required
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
             <div className="admin-form-group">
+
               <label className="input-label" style={{ fontSize: '13px' }}>Địa chỉ Email *</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-muted)' }} />
@@ -121,8 +180,9 @@ export default function LoginModal({ onClose, onLogin, demoUsers }) {
               className="checkout-action-btn"
               style={{ padding: '12px', marginTop: '6px' }}
             >
-              Đăng Nhập Hệ Thống
+              {mode === 'login' ? 'Đăng Nhập Hệ Thống' : 'Hoàn Tất Đăng Ký'}
             </button>
+
           </form>
 
           {/* Divider */}
@@ -137,8 +197,8 @@ export default function LoginModal({ onClose, onLogin, demoUsers }) {
           {/* Quick Demo Login Buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {demoUsers.map((user) => {
-              let roleBadgeColor = '#ef6c00'; // staff
-              let roleBg = '#fff3e0';
+              let roleBadgeColor = 'var(--primary)'; // customer
+              let roleBg = 'var(--primary-light)';
               if (user.role === 'manager') {
                 roleBadgeColor = '#2e7d32'; // manager
                 roleBg = '#e8f5e9';
@@ -193,7 +253,7 @@ export default function LoginModal({ onClose, onLogin, demoUsers }) {
                     borderRadius: '4px',
                     textTransform: 'uppercase'
                   }}>
-                    {user.role === 'manager' ? 'Quản lý' : user.role === 'staff' ? 'Nhân viên' : 'Khách'}
+                    {user.role === 'manager' ? 'Quản lý' : 'Khách'}
                   </span>
                 </button>
               );

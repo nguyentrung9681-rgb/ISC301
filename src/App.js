@@ -10,10 +10,10 @@ import LoginModal from './components/LoginModal';
 import AlertModal from './components/AlertModal';
 import WishlistModal from './components/WishlistModal';
 import ProfilePage from './components/ProfilePage';
-
+import { api } from './api';
 
 // Icon imports from lucide-react
-import { 
+import {
   ArrowRight, 
   MapPin, 
   Phone, 
@@ -33,27 +33,25 @@ import {
   Check
 } from 'lucide-react';
 
+const parseImages = (imgUrl) => {
+  if (!imgUrl) return ['https://via.placeholder.com/400x500'];
+  try {
+    const parsed = JSON.parse(imgUrl);
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+  } catch(e) {}
+  return [imgUrl];
+};
+
 export default function App() {
   // --- CORE SYSTEM STATES (Synced with LocalStorage) ---
-  const [products, setProducts] = useState(() => {
-    const local = localStorage.getItem('jusst_products');
-    return local ? JSON.parse(local) : initialProducts;
-  });
+  const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
 
-  const [cart, setCart] = useState(() => {
-    const local = localStorage.getItem('jusst_cart');
-    return local ? JSON.parse(local) : [];
-  });
-
-  const [orders, setOrders] = useState(() => {
-    const local = localStorage.getItem('jusst_orders');
-    return local ? JSON.parse(local) : [];
-  });
 
   // --- AUTHENTICATION MOCK ACCOUNTS ---
   const DEMO_USERS = [
     { email: 'manager@jusstlife.com', password: 'manager123', role: 'manager', name: 'Nguyễn Quản Lý', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' },
-    { email: 'staff@jusstlife.com', password: 'staff123', role: 'staff', name: 'Trần Nhân Viên', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100' },
     { email: 'customer@jusstlife.com', password: 'customer123', role: 'customer', name: 'Lê Khách Hàng', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }
   ];
 
@@ -62,13 +60,16 @@ export default function App() {
     return local ? JSON.parse(local) : null;
   });
 
+  // Keep token if we eventually add one, currently just mock or store the user obj
+
+
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [trackingOrderId, setTrackingOrderId] = useState('');
 
   // --- NAVIGATION & PORTAL STATES ---
   const [currentPage, setCurrentPage] = useState('home'); // home, shop, about, cart, checkout, admin
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [currentRole, setCurrentRole] = useState('staff'); // staff or manager
+  const [currentRole, setCurrentRole] = useState('manager'); // manager
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -101,29 +102,69 @@ export default function App() {
   });
 
   // --- WISHLIST / FAVORITES STATES ---
-  const [wishlist, setWishlist] = useState(() => {
-    const local = localStorage.getItem('jusst_wishlist');
-    return local ? JSON.parse(local) : [];
-  });
+  const [wishlist, setWishlist] = useState([]);
+
   const [showWishlistModal, setShowWishlistModal] = useState(false);
 
 
-  // --- EFFECTS FOR PERSISTENCE ---
+  // --- INITIAL DATA FETCH ---
   useEffect(() => {
-    localStorage.setItem('jusst_products', JSON.stringify(products));
-  }, [products]);
+    const fetchData = async () => {
+      try {
+        const [productsRes, cartRes, wishlistRes, ordersRes] = await Promise.all([
+          api.getProducts().catch(() => []),
+          // Assuming user needs to be logged in to fetch these, or API ignores without auth
+          currentUser ? api.getCart().catch(() => ({ data: [] })) : { data: [] },
+          currentUser ? api.getWishlist().catch(() => ({ data: [] })) : { data: [] },
+          currentUser?.role === 'manager' ? api.getAdminOrders().catch(() => []) : (currentUser ? api.getOrderHistory().catch(() => ({ data: [] })) : { data: [] })
+        ]);
+        
+        // Map products
+        const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
+          id: p.id,
+          name: p.productName || p.name,
+          description: p.description || '',
+          price: p.price || 0,
+          category: p.category || 'ao',
+          categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
+          sizes: ['S', 'M', 'L', 'XL'],
+          colors: [{name: 'Mặc định', hex: '#000'}],
+          inventory: p.stockQuantity || 100,
+          soldCount: 0,
+          status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
+          isNew: true,
+          isBestSeller: p.ratingAverage >= 4.5,
+          images: parseImages(p.imageUrl)
+        }));
+        setProducts(mappedProducts);
 
-  useEffect(() => {
-    localStorage.setItem('jusst_cart', JSON.stringify(cart));
-  }, [cart]);
+        // Map cart
+        const mapCart = (backendCart) => (Array.isArray(backendCart) ? backendCart : []).map(c => ({
+          ...c,
+          cartItemId: c.id,
+          id: c.product?.id || c.id,
+          name: c.product?.productName || c.product?.name || c.name || 'Sản phẩm',
+          price: c.product?.price || c.price || 0,
+          inventory: c.product?.stockQuantity || c.inventory || 100,
+          quantity: c.quantity || 1,
+          images: c.product?.imageUrl ? parseImages(c.product.imageUrl) : (c.images || ['https://via.placeholder.com/400x500']),
+          selectedSize: c.selectedSize || 'M',
+          selectedColor: c.selectedColor || {name: 'Mặc định', hex: '#000'}
+        }));
 
-  useEffect(() => {
-    localStorage.setItem('jusst_orders', JSON.stringify(orders));
-  }, [orders]);
+        setCart(mapCart(cartRes.data || cartRes || []));
 
-  useEffect(() => {
-    localStorage.setItem('jusst_wishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
+        setWishlist(wishlistRes.data || wishlistRes || []);
+        setOrders(ordersRes.data || ordersRes || []);
+      } catch (err) {
+        console.error('Error fetching initial data:', err);
+      }
+    };
+    fetchData();
+  }, [currentUser]); // Refetch when user changes
+
+  // Remove persistence to localStorage since we use API now
+
 
   useEffect(() => {
     if (currentUser) {
@@ -146,34 +187,66 @@ export default function App() {
     }
   }, [currentUser]);
 
-  // LOGIN & LOGOUT HANDLERS
-  const handleLogin = (user) => {
-    setCurrentUser(user);
-    setShowLoginModal(false);
-    
-    let roleText = "Khách Hàng";
-    if (user.role === 'manager') roleText = "Quản Lý";
-    if (user.role === 'staff') roleText = "Nhân Viên";
-
-    addToast(`Đăng nhập thành công! Chào mừng ${user.name} (${roleText})`, 'success');
-
-    // Auto-redirect based on role
-    if (user.role === 'manager' || user.role === 'staff') {
-      setIsAdminMode(true);
-      setCurrentRole(user.role);
-      setCurrentPage('admin');
-    } else {
-      setIsAdminMode(false);
-      setCurrentPage('home');
+  // LOGIN, REGISTER & LOGOUT HANDLERS
+  const handleRegister = async (userData) => {
+    try {
+      await api.register(userData);
+      addToast('Đăng ký tài khoản thành công! Tự động đăng nhập...', 'success');
+      // Tự động login sau khi đăng ký
+      await handleLogin(userData.email, userData.password);
+    } catch (err) {
+      addToast(err.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.', 'error');
     }
   };
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setIsAdminMode(false);
-    setCurrentPage('home');
-    addToast('Đã đăng xuất tài khoản thành công.', 'info');
+  const handleLogin = async (email, password) => {
+
+    try {
+      const res = await api.login({ email, password });
+      
+      // Map API response to user shape expected by frontend if necessary
+      const user = {
+        ...res,
+        name: res.fullName || 'Khách Hàng',
+        role: res.role ? res.role.toLowerCase() : 'customer'
+      };
+
+      setCurrentUser(user);
+      setShowLoginModal(false);
+      
+      let roleText = "Khách Hàng";
+      if (user.role === 'manager' || user.role === 'admin') roleText = "Quản Lý";
+
+      addToast(`Đăng nhập thành công! Chào mừng ${user.name} (${roleText})`, 'success');
+
+      // Auto-redirect based on role
+      if (user.role === 'manager' || user.role === 'admin') {
+        setIsAdminMode(true);
+        setCurrentRole(user.role);
+        setCurrentPage('admin');
+      } else {
+        setIsAdminMode(false);
+        setCurrentPage('home');
+      }
+    } catch (err) {
+      addToast(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.', 'error');
+    }
   };
+
+  const handleLogout = async () => {
+    try {
+      await api.logout().catch(() => {});
+    } finally {
+      setCurrentUser(null);
+      setIsAdminMode(false);
+      setCurrentPage('home');
+      setCart([]);
+      setWishlist([]);
+      setOrders([]);
+      addToast('Đã đăng xuất tài khoản thành công.', 'info');
+    }
+  };
+
 
   // --- UNIFIED MODAL POPUP HELPERS ---
   const showAlert = (title, text, type = 'info') => {
@@ -239,31 +312,37 @@ export default function App() {
 
 
   // --- CUSTOMER CART ACTIONS ---
-  const handleAddToCart = (cartItem) => {
-    if (!cartItem) return;
-    
-    // Check if item with same ID, size and color already in cart
-    const existingIdx = cart.findIndex(
-      (item) => 
-        item.id === cartItem.id && 
-        item.selectedSize === cartItem.selectedSize && 
-        item.selectedColor.name === cartItem.selectedColor.name
-    );
-
-    if (existingIdx > -1) {
-      const updated = [...cart];
-      const newQty = updated[existingIdx].quantity + cartItem.quantity;
-      if (newQty > cartItem.inventory) {
-        addToast(`Không thể thêm! Vượt quá tồn kho (${cartItem.inventory} sản phẩm)!`, 'error');
-        return;
-      }
-      updated[existingIdx].quantity = newQty;
-      setCart(updated);
-    } else {
-      setCart([...cart, cartItem]);
+  const fetchAndSetCart = async () => {
+    try {
+      const cartRes = await api.getCart();
+      const rawCart = cartRes.data || cartRes || [];
+      const mapCart = (backendCart) => (Array.isArray(backendCart) ? backendCart : []).map(c => ({
+        ...c,
+        cartItemId: c.id,
+        id: c.product?.id || c.id,
+        name: c.product?.productName || c.product?.name || c.name || 'Sản phẩm',
+        price: c.product?.price || c.price || 0,
+        inventory: c.product?.stockQuantity || c.inventory || 100,
+        quantity: c.quantity || 1,
+        images: c.product?.imageUrl ? parseImages(c.product.imageUrl) : (c.images || ['https://via.placeholder.com/400x500']),
+        selectedSize: c.selectedSize || 'M',
+        selectedColor: c.selectedColor || {name: 'Mặc định', hex: '#000'}
+      }));
+      setCart(mapCart(rawCart));
+    } catch (err) {
+      console.error('Error refreshing cart:', err);
     }
-    
-    addToast(`Đã thêm ${cartItem.quantity} sản phẩm "${cartItem.name}" vào giỏ hàng!`, 'success');
+  };
+
+  const handleAddToCart = async (cartItem) => {
+    if (!cartItem) return;
+    try {
+      await api.addToCart(cartItem.id, cartItem.quantity);
+      await fetchAndSetCart();
+      addToast(`Đã thêm ${cartItem.quantity} sản phẩm "${cartItem.name}" vào giỏ hàng!`, 'success');
+    } catch (err) {
+      addToast(err.message || 'Lỗi khi thêm vào giỏ hàng', 'error');
+    }
   };
 
   const handleBuyNow = (cartItem) => {
@@ -274,14 +353,14 @@ export default function App() {
     }
 
     // Normal Buy Now flow: Add to cart and immediately checkout
-    handleAddToCart(cartItem);
-    setSelectedProduct(null);
-    setCurrentPage('checkout');
+    handleAddToCart(cartItem).then(() => {
+      setSelectedProduct(null);
+      setCurrentPage('checkout');
+    });
   };
 
-  const handleUpdateCartQty = (idx, amount) => {
-    const updated = [...cart];
-    const item = updated[idx];
+  const handleUpdateCartQty = async (idx, amount) => {
+    const item = cart[idx];
     const newQty = item.quantity + amount;
 
     if (newQty < 1) {
@@ -294,8 +373,12 @@ export default function App() {
       return;
     }
 
-    item.quantity = newQty;
-    setCart(updated);
+    try {
+      await api.updateCartQty(item.cartItemId || item.id, newQty);
+      await fetchAndSetCart();
+    } catch (err) {
+      addToast(err.message || 'Lỗi cập nhật số lượng', 'error');
+    }
   };
 
   const handleRemoveCartItem = (idx) => {
@@ -304,15 +387,21 @@ export default function App() {
       'XÓA KHỎI GIỎ HÀNG',
       `Bạn có chắc chắn muốn xóa sản phẩm "${item.name}" khỏi giỏ hàng?`,
       'delete',
-      () => {
-        setCart(cart.filter((_, i) => i !== idx));
-        addToast(`Đã xóa sản phẩm khỏi giỏ hàng`, 'info');
+      async () => {
+        try {
+          await api.removeFromCart(item.cartItemId || item.id);
+          await fetchAndSetCart();
+          addToast(`Đã xóa sản phẩm khỏi giỏ hàng`, 'info');
+        } catch (err) {
+          addToast(err.message || 'Lỗi xóa sản phẩm', 'error');
+        }
       }
     );
   };
 
+
   // --- PLACE ORDER FLOW ---
-  const handlePlaceOrderSubmit = (e) => {
+  const handlePlaceOrderSubmit = async (e) => {
     e.preventDefault();
     if (cart.length === 0) {
       showAlert('GIỎ HÀNG TRỐNG', 'Giỏ hàng đang trống! Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt hàng.', 'warning');
@@ -323,75 +412,120 @@ export default function App() {
       return;
     }
 
-    const orderId = "JUSST" + Math.floor(100000 + Math.random() * 900000);
-    const orderTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    try {
+      await api.checkout(checkoutAddress.trim(), checkoutPhone.trim(), paymentMethod === 'COD' ? "COD" : "Chuyển khoản");
+      
+      setCart([]);
+      
+      const orderId = "JUSST" + Math.floor(100000 + Math.random() * 900000);
+      setLastOrderId(orderId);
+      setShowSuccessPopup(true);
 
-    const newOrder = {
-      id: orderId,
-      customerName: checkoutName.trim(),
-      phone: checkoutPhone.trim(),
-      address: checkoutAddress.trim(),
-      note: checkoutNote.trim(),
-      paymentMethod: paymentMethod === 'COD' ? "COD" : "Chuyển khoản",
-      items: cart,
-      totalPrice: orderTotal,
-      status: "Chờ xử lý",
-      createdAt: new Date().toISOString()
-    };
-
-    // Cập nhật tồn kho sản phẩm trong database
-    const updatedProducts = products.map(prod => {
-      const cartItemsForProduct = cart.filter(item => item.id === prod.id);
-      if (cartItemsForProduct.length > 0) {
-        const totalPurchased = cartItemsForProduct.reduce((sum, c) => sum + c.quantity, 0);
-        return {
-          ...prod,
-          inventory: Math.max(0, prod.inventory - totalPurchased),
-          soldCount: (prod.soldCount || 0) + totalPurchased
-        };
+      // Refresh orders
+      if (currentUser) {
+        const ordersRes = currentUser.role === 'manager' ? await api.getAdminOrders().catch(() => []) : await api.getOrderHistory().catch(() => ({ data: [] }));
+        setOrders(ordersRes.data || ordersRes || []);
       }
-      return prod;
-    });
 
-    setProducts(updatedProducts);
-    setOrders([...orders, newOrder]);
-    setCart([]);
-    setLastOrderId(orderId);
-    setShowSuccessPopup(true);
+      // Refresh products (inventory updated)
+      const productsRes = await api.getProducts().catch(() => []);
+      const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
+          id: p.id,
+          name: p.productName || p.name,
+          description: p.description || '',
+          price: p.price || 0,
+          category: p.category || 'ao',
+          categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
+          sizes: ['S', 'M', 'L', 'XL'],
+          colors: [{name: 'Mặc định', hex: '#000'}],
+          inventory: p.stockQuantity || 100,
+          soldCount: 0,
+          status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
+          isNew: true,
+          isBestSeller: p.ratingAverage >= 4.5,
+          images: parseImages(p.imageUrl)
+        }));
+      setProducts(mappedProducts);
 
-    // Clear form
-    setCheckoutName('');
-    setCheckoutPhone('');
-    setCheckoutAddress('');
-    setCheckoutNote('');
+      // Clear form
+      setCheckoutName('');
+      setCheckoutPhone('');
+      setCheckoutAddress('');
+      setCheckoutNote('');
+    } catch (err) {
+      addToast(err.message || 'Lỗi khi đặt hàng', 'error');
+    }
   };
 
+
   // --- ADMIN PORTAL ACTIONS ---
-  const handleAddProduct = (newProduct) => {
-    // Generate simple ID
-    const newId = "jusst-" + newProduct.category + "-" + Math.floor(1000 + Math.random() * 9000);
-    
-    // Quản lý thêm thì APPROVED luôn, nhân viên thêm thì PENDING
-    const initialStatus = currentRole === 'manager' ? 'approved' : 'pending';
+  const fetchProducts = async () => {
+    try {
+      const productsRes = await api.getProducts().catch(() => []);
+      const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
+          id: p.id,
+          name: p.productName || p.name,
+          description: p.description || '',
+          price: p.price || 0,
+          category: p.category || 'ao',
+          categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
+          sizes: ['S', 'M', 'L', 'XL'],
+          colors: [{name: 'Mặc định', hex: '#000'}],
+          inventory: p.stockQuantity || 100,
+          soldCount: 0,
+          status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
+          isNew: true,
+          isBestSeller: p.ratingAverage >= 4.5,
+          images: parseImages(p.imageUrl)
+      }));
+      setProducts(mappedProducts);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-    const fullProduct = {
-      ...newProduct,
-      id: newId,
-      status: initialStatus,
-      rejectReason: "",
-      createdAt: new Date().toISOString()
-    };
+  const handleAddProduct = async (newProduct) => {
+    try {
+      const payload = {
+        productName: newProduct.name,
+        description: newProduct.description || '',
+        price: Number(newProduct.price || 0),
+        stockQuantity: Number(newProduct.inventory || 100),
+        imageUrl: newProduct.imageUrl || '',
+        category: newProduct.category || 'ao'
+      };
+      
+      await api.addProduct(payload);
+      await fetchProducts();
 
-    setProducts([fullProduct, ...products]);
-    
-    if (initialStatus === 'approved') {
-      addToast(`Sản phẩm "${newProduct.name}" đã đăng bán trực tiếp thành công!`, 'success');
-    } else {
-      addToast(`Sản phẩm "${newProduct.name}" đã được gửi lên để chờ QUẢN LÝ phê duyệt!`, 'success');
+      addToast(`Sản phẩm "${newProduct.name}" đã được thêm thành công!`, 'success');
+    } catch (err) {
+      addToast(err.message || 'Lỗi thêm sản phẩm', 'error');
+    }
+  };
+
+  const handleEditProduct = async (id, newProduct) => {
+    try {
+      const payload = {
+        productName: newProduct.name,
+        description: newProduct.description || '',
+        price: Number(newProduct.price || 0),
+        stockQuantity: Number(newProduct.inventory || 100),
+        imageUrl: newProduct.imageUrl || '',
+        category: newProduct.category || 'ao'
+      };
+      
+      await api.updateProduct(id, payload);
+      await fetchProducts();
+
+      addToast(`Sản phẩm "${newProduct.name}" đã được cập nhật thành công!`, 'success');
+    } catch (err) {
+      addToast(err.message || 'Lỗi cập nhật sản phẩm', 'error');
     }
   };
 
   const handleUpdateProductStatus = (id, newStatus, reason = '') => {
+    // The backend swagger doesn't clearly support updating status directly, so we just mock it on frontend
     const updated = products.map((p) => {
       if (p.id === id) {
         return {
@@ -406,9 +540,9 @@ export default function App() {
 
     const prod = products.find(p => p.id === id);
     if (newStatus === 'approved') {
-      addToast(`Đã PHÊ DUYỆT sản phẩm "${prod.name}" đăng bán!`, 'success');
+      addToast(`Đã PHÊ DUYỆT sản phẩm "${prod?.name || ''}" đăng bán!`, 'success');
     } else if (newStatus === 'rejected') {
-      addToast(`Đã TỪ CHỐI sản phẩm "${prod.name}".`, 'info');
+      addToast(`Đã TỪ CHỐI sản phẩm "${prod?.name || ''}".`, 'info');
     }
   };
 
@@ -416,25 +550,37 @@ export default function App() {
     const prod = products.find(p => p.id === id);
     showConfirm(
       'XÓA SẢN PHẨM',
-      `Bạn có chắc chắn muốn xóa sản phẩm "${prod.name}" khỏi hệ thống?`,
+      `Bạn có chắc chắn muốn xóa sản phẩm "${prod?.name || ''}" khỏi hệ thống?`,
       'delete',
-      () => {
-        setProducts(products.filter(p => p.id !== id));
-        addToast(`Đã xóa sản phẩm khỏi hệ thống`, 'info');
+      async () => {
+        try {
+          await api.deleteProduct(id);
+          await fetchProducts();
+          addToast(`Đã xóa sản phẩm khỏi hệ thống`, 'info');
+        } catch (err) {
+          addToast(err.message || 'Lỗi xóa sản phẩm', 'error');
+        }
       }
     );
   };
 
-  const handleUpdateOrderStatus = (id, newStatus) => {
-    const updated = orders.map((o) => {
-      if (o.id === id) {
-        return { ...o, status: newStatus };
+  const handleUpdateOrderStatus = async (id, newStatus) => {
+    try {
+      if (newStatus === 'Hủy đơn') {
+        await api.adminCancelOrder(id);
+      } else {
+        await api.updateOrderStatus(id, newStatus);
       }
-      return o;
-    });
-    setOrders(updated);
-    addToast(`Đã chuyển đơn #${id} sang trạng thái "${newStatus}"!`, 'success');
+      
+      const ordersRes = await api.getAdminOrders().catch(() => []);
+      setOrders(ordersRes.data || ordersRes || []);
+      
+      addToast(`Đã chuyển đơn #${id} sang trạng thái "${newStatus}"!`, 'success');
+    } catch (err) {
+      addToast(err.message || 'Lỗi cập nhật trạng thái đơn hàng', 'error');
+    }
   };
+
 
   // --- FILTER SHOP SEARCH FLOW ---
   const activeApprovedProducts = products.filter(p => p.status === 'approved');
@@ -1461,7 +1607,7 @@ export default function App() {
                         <div>
                           <h4 style={{ fontSize: '16px', fontWeight: 700 }}>ĐƠN HÀNG ĐÃ BỊ HỦY BỎ</h4>
                           <p style={{ fontSize: '13px', color: 'rgba(198, 40, 40, 0.8)', marginTop: '2px' }}>
-                            Rất tiếc, đơn hàng của bạn đã bị hủy bỏ trên hệ thống bởi nhân viên hoặc quản lý. Vui lòng liên hệ hotline 1900 8888 để biết thêm chi tiết.
+                            Rất tiếc, đơn hàng của bạn đã bị hủy bỏ trên hệ thống bởi quản lý. Vui lòng liên hệ hotline 1900 8888 để biết thêm chi tiết.
                           </p>
                         </div>
                       </div>
@@ -1625,7 +1771,7 @@ export default function App() {
             currentUser={currentUser}
             onUpdateProfile={handleUpdateProfile}
             onGoBack={() => {
-              if (currentUser && (currentUser.role === 'staff' || currentUser.role === 'manager')) {
+              if (currentUser && (currentUser.role === 'manager')) {
                 setIsAdminMode(true);
                 setCurrentPage('admin');
               } else {
@@ -1639,14 +1785,15 @@ export default function App() {
         )}
 
         {/* =========================================================================
-           PORTAL: QUẢN TRỊ VIÊN & NHÂN VIÊN (ADMIN DASHBOARD)
+           PORTAL: QUẢN TRỊ VIÊN (ADMIN DASHBOARD)
            ========================================================================= */}
         {isAdminMode && (
-          currentUser && (currentUser.role === 'staff' || currentUser.role === 'manager') ? (
+          currentUser && (currentUser.role === 'manager') ? (
             <AdminPortal 
               products={products}
               orders={orders}
               onAddProduct={handleAddProduct}
+              onEditProduct={handleEditProduct}
               onUpdateProductStatus={handleUpdateProductStatus}
               onDeleteProduct={handleDeleteProduct}
               onUpdateOrderStatus={handleUpdateOrderStatus}
@@ -1661,7 +1808,7 @@ export default function App() {
               </div>
               <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '10px' }}>YÊU CẦU ĐẦY ĐỦ QUYỀN TRUY CẬP</h2>
               <p style={{ color: 'var(--secondary-muted)', maxWidth: '460px', margin: '0 auto 24px', fontSize: '14px', lineHeight: '1.6' }}>
-                Trang này chỉ dành cho <strong>Quản Lý</strong> hoặc <strong>Nhân Viên</strong> cửa hàng Jusstlife. Vui lòng đăng nhập đúng tài khoản được phân quyền để quản trị hệ thống.
+                Trang này chỉ dành cho <strong>Quản Lý</strong> cửa hàng Jusstlife. Vui lòng đăng nhập đúng tài khoản được phân quyền để quản trị hệ thống.
               </p>
               <div style={{ display: 'flex', gap: '14px' }}>
                 <button 
@@ -1783,7 +1930,7 @@ export default function App() {
             <p style={{ margin: '10px 0 20px', lineHeight: '1.6' }}>
               Cảm ơn bạn đã lựa chọn mua sắm tại <strong>Jusstlife</strong>! Mã đơn đặt hàng của bạn là <strong style={{ color: 'var(--primary)', fontSize: '16px' }}>#{lastOrderId}</strong>. 
               <br />
-              Đơn hàng đã được chuyển đến Cổng Quản Trị của nhân viên để chuẩn bị và giao hàng cho bạn trong thời gian sớm nhất.
+              Đơn hàng đã được chuyển đến Cổng Quản Trị để chuẩn bị và giao hàng cho bạn trong thời gian sớm nhất.
             </p>
             <button className="btn-success-back" onClick={() => { setShowSuccessPopup(false); setCurrentPage('home'); }}>
               Về Trang Chủ Mua Sắm
@@ -1797,9 +1944,11 @@ export default function App() {
         <LoginModal 
           onClose={() => setShowLoginModal(false)}
           onLogin={handleLogin}
+          onRegister={handleRegister}
           demoUsers={DEMO_USERS}
         />
       )}
+
 
       {/* E. SLIDE-OVER WISHLIST DRAWER POPUP */}
       <WishlistModal 

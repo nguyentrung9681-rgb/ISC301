@@ -68,12 +68,6 @@ export default function ProfilePage({
     roleBg = "#e8f5e9";
     statLabel = "Tổng số đơn hàng chờ duyệt:";
     statValue = orders.filter(o => o.status === 'Chờ xử lý').length;
-  } else if (currentUser.role === 'staff') {
-    roleTitle = "Nhân Viên Cửa Hàng";
-    roleColor = "#ef6c00";
-    roleBg = "#fff3e0";
-    statLabel = "Tổng số sản phẩm bạn đã đăng:";
-    statValue = products.filter(p => p.createdBy === 'staff').length;
   } else {
     roleTitle = "Khách Hàng Thân Thiết";
     roleColor = "var(--primary)";

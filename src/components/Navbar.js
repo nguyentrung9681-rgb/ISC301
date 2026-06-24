@@ -29,7 +29,7 @@ export default function Navbar({
     setCurrentPage('home');
   };
 
-  const isStaffOrManager = currentUser && (currentUser.role === 'staff' || currentUser.role === 'manager');
+  const isManager = currentUser && (currentUser.role === 'manager');
 
   return (
     <header className="app-header">
@@ -173,16 +173,16 @@ export default function Navbar({
                 <span style={{ 
                   fontSize: '9px', 
                   fontWeight: 700, 
-                  color: currentUser.role === 'manager' ? '#2e7d32' : currentUser.role === 'staff' ? '#ef6c00' : 'var(--primary)',
+                  color: currentUser.role === 'manager' ? '#2e7d32' : 'var(--primary)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
-                  {currentUser.role === 'manager' ? 'Quản Lý' : currentUser.role === 'staff' ? 'Nhân Viên' : 'Khách Hàng'}
+                  {currentUser.role === 'manager' ? 'Quản Lý' : 'Khách Hàng'}
                 </span>
               </div>
 
-              {/* Cổng Admin button (Chỉ hiển thị cho Staff và Manager) */}
-              {isStaffOrManager && (
+              {/* Cổng Admin button (Chỉ hiển thị cho Manager) */}
+              {isManager && (
                 <button 
                   className={`portal-switch-btn ${isAdminMode ? 'admin-mode' : ''}`} 
                   onClick={() => {

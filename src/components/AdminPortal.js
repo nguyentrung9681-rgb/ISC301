@@ -12,13 +12,15 @@ import {
   Calendar,
   DollarSign,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  Edit
 } from 'lucide-react';
 
 export default function AdminPortal({ 
   products, 
   orders, 
   onAddProduct, 
+  onEditProduct,
   onUpdateProductStatus, 
   onDeleteProduct, 
   onUpdateOrderStatus,
@@ -38,8 +40,43 @@ export default function AdminPortal({
   const [prodCategory, setProdCategory] = useState('ao');
   const [prodGender, setProdGender] = useState('Unisex');
   const [prodDesc, setProdDesc] = useState('');
-  const [prodImgUrl1, setProdImgUrl1] = useState('');
-  const [prodImgUrl2, setProdImgUrl2] = useState('');
+  const [prodImageUrl, setProdImageUrl] = useState('');
+  const [editProductId, setEditProductId] = useState(null);
+
+  const openEditForm = (prod) => {
+    setEditProductId(prod.id);
+    setProdName(prod.name || '');
+    setProdPrice(prod.price || '');
+    setProdOriginalPrice(prod.originalPrice || prod.price || '');
+    setProdCategory(prod.category || 'ao');
+    setProdGender(prod.gender || 'Unisex');
+    setProdInventory(prod.inventory || '50');
+    setProdDesc(prod.description || '');
+    
+    // Xử lý lấy url ảnh
+    let url = '';
+    if (prod.images && prod.images.length > 0) {
+      url = prod.images[0];
+    } else if (prod.imageUrl) {
+      url = prod.imageUrl;
+    }
+    setProdImageUrl(url);
+    
+    setActiveMenu('add-product');
+  };
+
+  const handleClearForm = () => {
+    setEditProductId(null);
+    setProdName('');
+    setProdPrice('');
+    setProdOriginalPrice('');
+    setProdInventory('50');
+    setProdDesc('');
+    setProdImageUrl('');
+    setProdCategory('ao');
+    setSelectedSizes(['M', 'L']);
+    setSelectedColors([PRESET_COLORS[0], PRESET_COLORS[1]]);
+  };
   
   // Sizes Selection
   const [selectedSizes, setSelectedSizes] = useState(['M', 'L']);
@@ -92,13 +129,10 @@ export default function AdminPortal({
       return;
     }
 
-    const imagesArray = [];
-    if (prodImgUrl1.trim()) imagesArray.push(prodImgUrl1.trim());
-    if (prodImgUrl2.trim()) imagesArray.push(prodImgUrl2.trim());
-
-    // Nếu không nhập ảnh, tự lấy ảnh Unsplash mặc định cho đẹp
-    if (imagesArray.length === 0) {
-      imagesArray.push("https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600");
+    if (!prodImageUrl.trim()) {
+      if (showAlert) showAlert('THIẾU ẢNH', 'Vui lòng nhập đường dẫn URL ảnh hợp lệ!', 'warning');
+      else alert('Vui lòng nhập đường dẫn ảnh!');
+      return;
     }
 
     const categoriesLabels = {
@@ -109,7 +143,7 @@ export default function AdminPortal({
     };
 
     const newProduct = {
-      name: prodName,
+      name: prodName.trim(),
       price: Number(prodPrice),
       originalPrice: prodOriginalPrice ? Number(prodOriginalPrice) : Number(prodPrice),
       category: prodCategory,
@@ -117,8 +151,9 @@ export default function AdminPortal({
       gender: prodGender,
       sizes: selectedSizes.length > 0 ? selectedSizes : ["One Size"],
       colors: selectedColors.length > 0 ? selectedColors : [{ name: "Mặc định", hex: "#ccc" }],
-      images: imagesArray,
-      description: prodDesc.trim() || "Sản phẩm thời trang Jusstlife chất lượng cao phong cách hiện đại tối giản.",
+      imageUrl: prodImageUrl.trim(),
+      images: [prodImageUrl.trim()],
+      description: prodDesc.trim() || "Sản phẩm thời trang chất lượng cao.",
       inventory: Number(prodInventory),
       rating: 5.0,
       reviewsCount: 0,
@@ -127,18 +162,13 @@ export default function AdminPortal({
       createdBy: currentRole
     };
 
-    onAddProduct(newProduct);
+    if (editProductId) {
+      onEditProduct(editProductId, newProduct);
+    } else {
+      onAddProduct(newProduct);
+    }
     
-    // Clear form
-    setProdName('');
-    setProdPrice('');
-    setProdOriginalPrice('');
-    setProdInventory('50');
-    setProdDesc('');
-    setProdImgUrl1('');
-    setProdImgUrl2('');
-    setSelectedSizes(['M', 'L']);
-    setSelectedColors([PRESET_COLORS[0], PRESET_COLORS[1]]);
+    handleClearForm();
 
     // Switch tab back to products-list
     setActiveMenu('products-list');
@@ -159,13 +189,8 @@ export default function AdminPortal({
     setRejectReasonInput('');
   };
 
-  // Switch role reset
   const handleRoleChange = (role) => {
     setCurrentRole(role);
-    // Adjust menus based on role
-    if (role === 'staff' && (activeMenu === 'analytics' || activeMenu === 'approve-list')) {
-      setActiveMenu('products-list');
-    }
   };
 
   // CALCULATE ANALYTICS (REAL STATISTICS!)
@@ -185,47 +210,29 @@ export default function AdminPortal({
           <span className="role-badge-title">Phân Quyền Hệ Thống</span>
           <span className="role-badge-name">
             <ShieldCheck size={20} />
-            <span>{currentRole === 'manager' ? "Quản Lý" : "Nhân Viên"}</span>
+            <span>Quản Lý</span>
           </span>
         </div>
 
-        {/* ROLE SWITCHER TABS */}
-        <div className="role-switcher-tabs">
-          <button 
-            className={`role-tab-btn ${currentRole === 'staff' ? 'active' : ''}`}
-            onClick={() => handleRoleChange('staff')}
-          >
-            Nhân Viên
-          </button>
-          <button 
-            className={`role-tab-btn ${currentRole === 'manager' ? 'active' : ''}`}
-            onClick={() => handleRoleChange('manager')}
-          >
-            Quản Lý
-          </button>
-        </div>
+
 
         {/* MENUS */}
         <div className="admin-menu">
-          {currentRole === 'manager' && (
-            <button 
-              className={`admin-menu-item ${activeMenu === 'analytics' ? 'active' : ''}`}
-              onClick={() => setActiveMenu('analytics')}
-            >
-              <BarChart3 size={16} />
-              <span>Thống Kê Doanh Thu</span>
-            </button>
-          )}
+          <button 
+            className={`admin-menu-item ${activeMenu === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('analytics')}
+          >
+            <BarChart3 size={16} />
+            <span>Thống Kê Doanh Thu</span>
+          </button>
 
-          {currentRole === 'manager' && (
-            <button 
-              className={`admin-menu-item ${activeMenu === 'approve-list' ? 'active' : ''}`}
-              onClick={() => setActiveMenu('approve-list')}
-            >
-              <CheckSquare size={16} style={{ color: pendingApprovalCount > 0 ? 'var(--primary)' : 'inherit' }} />
-              <span>Duyệt Sản Phẩm ({pendingApprovalCount})</span>
-            </button>
-          )}
+          <button 
+            className={`admin-menu-item ${activeMenu === 'approve-list' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('approve-list')}
+          >
+            <CheckSquare size={16} style={{ color: pendingApprovalCount > 0 ? 'var(--primary)' : 'inherit' }} />
+            <span>Duyệt Sản Phẩm ({pendingApprovalCount})</span>
+          </button>
 
           <button 
             className={`admin-menu-item ${activeMenu === 'products-list' ? 'active' : ''}`}
@@ -237,10 +244,13 @@ export default function AdminPortal({
 
           <button 
             className={`admin-menu-item ${activeMenu === 'add-product' ? 'active' : ''}`}
-            onClick={() => setActiveMenu('add-product')}
+            onClick={() => {
+              handleClearForm();
+              setActiveMenu('add-product');
+            }}
           >
             <PlusCircle size={16} />
-            <span>Thêm Sản Phẩm Mới</span>
+            <span>Thêm / Sửa Sản Phẩm</span>
           </button>
 
           <button 
@@ -259,7 +269,7 @@ export default function AdminPortal({
         {/* =========================================================================
            TAB: ANALYTICS (MANAGER ONLY)
            ========================================================================= */}
-        {activeMenu === 'analytics' && currentRole === 'manager' && (
+        {activeMenu === 'analytics' && (
           <div>
             <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '24px' }}>Báo Cáo Doanh Thu & Hệ Thống</h2>
             
@@ -344,19 +354,19 @@ export default function AdminPortal({
             {/* Quick Tips */}
             <div style={{ display: 'flex', gap: '16px', padding: '20px', background: '#e3f2fd', borderRadius: 'var(--radius-md)', color: '#0d47a1', fontSize: '14px', alignItems: 'center' }}>
               <InfoIcon />
-              <span><strong>Mẹo Quản Lý:</strong> Kiểm tra phần "Duyệt sản phẩm" thường xuyên để xét duyệt kịp thời các mẫu thiết kế mới của nhân viên gửi lên. Cửa hàng sẽ tự động cập nhật sản phẩm ngay sau khi bạn click Phê duyệt.</span>
+              <span><strong>Mẹo Quản Lý:</strong> Kiểm tra phần "Duyệt sản phẩm" thường xuyên để xét duyệt kịp thời các mẫu thiết kế mới gửi lên. Cửa hàng sẽ tự động cập nhật sản phẩm ngay sau khi bạn click Phê duyệt.</span>
             </div>
           </div>
         )}
 
         {/* =========================================================================
-           TAB: PRODUCT LIST (STAFF & MANAGER)
+           TAB: PRODUCT LIST (MANAGER)
            ========================================================================= */}
         {activeMenu === 'products-list' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ fontSize: '22px', fontWeight: 800 }}>
-                {currentRole === 'manager' ? "Quản Lý Toàn Bộ Sản Phẩm" : "Danh Sách Sản Phẩm Của Tôi"}
+                Quản Lý Toàn Bộ Sản Phẩm
               </h2>
               <button 
                 className="btn-admin-submit" 
@@ -388,9 +398,8 @@ export default function AdminPortal({
                   </tr>
                 ) : (
                   products
-                    // Nhân viên chỉ được xem hàng do mình tạo HOẶC xem tất cả nhưng chỉ quản lý hàng của mình. Để UX tốt, hiển thị hết sản phẩm nhưng chặn hành động xóa nếu không thuộc quyền
                     .map((prod) => {
-                      const isOwnerOrManager = currentRole === 'manager' || prod.createdBy === 'staff';
+                      const isOwnerOrManager = true;
 
                       return (
                         <tr key={prod.id}>
@@ -413,7 +422,7 @@ export default function AdminPortal({
                             {prod.inventory < 5 && <span style={{ color: '#c62828', fontSize: '10px', marginLeft: '6px', fontWeight: 700 }}>(Sắp hết!)</span>}
                           </td>
                           <td>{prod.categoryLabel}</td>
-                          <td>{prod.createdBy === 'manager' ? 'Quản lý' : 'Nhân viên'}</td>
+                          <td>{prod.createdBy === 'manager' ? 'Quản lý' : 'Khác'}</td>
                           <td>
                             <div className="prices-box">
                               <span className={`admin-status-pill ${prod.status}`}>
@@ -428,13 +437,22 @@ export default function AdminPortal({
                           </td>
                           <td style={{ textAlign: 'right' }}>
                             {isOwnerOrManager ? (
-                              <button 
-                                onClick={() => onDeleteProduct(prod.id)} 
-                                style={{ color: '#c62828', cursor: 'pointer' }}
-                                title="Xóa Sản Phẩm"
-                              >
-                                <Trash2 size={16} />
-                              </button>
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button 
+                                  onClick={() => openEditForm(prod)} 
+                                  style={{ color: 'var(--primary)', cursor: 'pointer', background: 'transparent', border: 'none', padding: '4px' }}
+                                  title="Sửa Sản Phẩm"
+                                >
+                                  <Edit size={16} />
+                                </button>
+                                <button 
+                                  onClick={() => onDeleteProduct(prod.id)} 
+                                  style={{ color: '#c62828', cursor: 'pointer', background: 'transparent', border: 'none', padding: '4px' }}
+                                  title="Xóa Sản Phẩm"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
                             ) : (
                               <span style={{ fontSize: '12px', color: '#ccc' }}>Không có quyền</span>
                             )}
@@ -451,7 +469,7 @@ export default function AdminPortal({
         {/* =========================================================================
            TAB: PENDING APPROVAL LIST (MANAGER ONLY)
            ========================================================================= */}
-        {activeMenu === 'approve-list' && currentRole === 'manager' && (
+        {activeMenu === 'approve-list' && (
           <div>
             <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '20px' }}>
               Xét Duyệt Thiết Kế Mới ({pendingApprovalCount})
@@ -531,15 +549,15 @@ export default function AdminPortal({
         )}
 
         {/* =========================================================================
-           TAB: ADD NEW PRODUCT FORM (STAFF & MANAGER)
+           TAB: ADD/EDIT PRODUCT FORM (MANAGER)
            ========================================================================= */}
         {activeMenu === 'add-product' && (
           <div>
-            <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '6px' }}>Thêm Thiết Kế Mới Vào Hệ Thống</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '6px' }}>
+              {editProductId ? 'Chỉnh Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới Vào Hệ Thống'}
+            </h2>
             <p style={{ fontSize: '13px', color: 'var(--secondary-muted)', marginBottom: '24px' }}>
-              {currentRole === 'manager' 
-                ? "💡 Phân quyền Quản Lý: Sản phẩm thêm mới sẽ tự động được PHÊ DUYỆT và đăng bán trực tiếp." 
-                : "💡 Phân quyền Nhân Viên: Sản phẩm thêm mới sẽ gửi đến hàng chờ của QUẢN LÝ để xét duyệt trước khi bán."}
+              💡 Phân quyền Quản Lý: Đảm bảo dữ liệu theo chuẩn Backend.
             </p>
 
             <form onSubmit={handleFormSubmit}>
@@ -666,26 +684,21 @@ export default function AdminPortal({
               <div className="admin-form-section-title">3. Hình ảnh & Mô tả chi tiết</div>
               
               <div className="admin-form-grid" style={{ marginBottom: '20px' }}>
-                <div className="admin-form-group">
-                  <label className="input-label">Link ảnh chính sản phẩm (URL)</label>
+                <div className="admin-form-group full-width">
+                  <label className="input-label">Đường dẫn ảnh sản phẩm (URL) *</label>
                   <input 
-                    type="text" 
-                    placeholder="Dán link ảnh online (Unsplash/Imgur)..." 
+                    type="url" 
+                    placeholder="Ví dụ: https://example.com/image.jpg" 
                     className="admin-input"
-                    value={prodImgUrl1}
-                    onChange={(e) => setProdImgUrl1(e.target.value)}
+                    value={prodImageUrl}
+                    onChange={(e) => setProdImageUrl(e.target.value)}
+                    required
                   />
-                </div>
-
-                <div className="admin-form-group">
-                  <label className="input-label">Link ảnh phụ 2 (URL)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Dán link ảnh phụ thứ hai..." 
-                    className="admin-input"
-                    value={prodImgUrl2}
-                    onChange={(e) => setProdImgUrl2(e.target.value)}
-                  />
+                  {prodImageUrl && (
+                    <div style={{ marginTop: '12px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-light)', display: 'inline-block' }}>
+                      <img src={prodImageUrl} alt="Preview" style={{ width: '120px', height: '120px', objectFit: 'cover', display: 'block' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                    </div>
+                  )}
                 </div>
 
                 <div className="admin-form-group full-width">
@@ -704,12 +717,15 @@ export default function AdminPortal({
                 <button 
                   type="button" 
                   className="btn-admin-cancel"
-                  onClick={() => setActiveMenu('products-list')}
+                  onClick={() => {
+                    handleClearForm();
+                    setActiveMenu('products-list');
+                  }}
                 >
                   Hủy bỏ
                 </button>
                 <button type="submit" className="btn-admin-submit">
-                  {currentRole === 'manager' ? "Đăng Bán Ngay" : "Gửi Phê Duyệt"}
+                  {editProductId ? 'Cập Nhật Sản Phẩm' : 'Thêm Sản Phẩm'}
                 </button>
               </div>
             </form>
@@ -717,7 +733,7 @@ export default function AdminPortal({
         )}
 
         {/* =========================================================================
-           TAB: ORDERS LIST (STAFF & MANAGER)
+           TAB: ORDERS LIST (MANAGER)
            ========================================================================= */}
         {activeMenu === 'orders-list' && (
           <div>
@@ -853,7 +869,7 @@ export default function AdminPortal({
           <div className="reject-dialog">
             <h3 style={{ fontSize: '18px', fontWeight: 700 }}>Từ Chối Duyệt Sản Phẩm</h3>
             <p style={{ fontSize: '13px', color: 'var(--secondary-muted)', margin: '8px 0 16px' }}>
-              Nhập lý do cụ thể gửi cho nhân viên để chỉnh sửa mẫu <strong>"{rejectProduct.name}"</strong>:
+              Nhập lý do cụ thể để chỉnh sửa mẫu <strong>"{rejectProduct.name}"</strong>:
             </p>
 
             <textarea 

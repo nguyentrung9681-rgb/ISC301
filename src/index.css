@@ -1880,9 +1880,9 @@ button {
   transform: scale(1.05);
 }
 
-/* ==========================================
-   ADMIN PORTAL & SYSTEM (STAFF & MANAGER)
-   ========================================== */
+/* ==========================================================================
+   ADMIN PORTAL & SYSTEM (MANAGER)
+   ========================================================================== */
 .admin-layout {
   display: grid;
   grid-template-columns: 240px 1fr;
@@ -2252,6 +2252,72 @@ button {
 .btn-reject:hover {
   background: #c62828;
   color: white;
+}
+
+/* Admin Upload Image Preview */
+.upload-preview-box {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.upload-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.upload-delete-btn:hover {
+  background: #f44336;
+  transform: scale(1.1);
+}
+
+.upload-delete-btn.small {
+  width: 18px;
+  height: 18px;
+}
+
+.gallery-preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.gallery-preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+}
+
+.gallery-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Reject Modal Popup Dialog */
