@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star, ShoppingCart, CreditCard, X } from 'lucide-react';
+import { api } from '../api';
 
 export default function ProductDetailModal({ 
   product, 
@@ -30,6 +31,21 @@ export default function ProductDetailModal({
   const [quantity, setQuantity] = useState(1);
   const [relatedProducts, setRelatedProducts] = useState([]);
 
+  const [reviews, setReviews] = useState([]);
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  const loadProductReviews = async () => {
+    if (!product || !product.id) return;
+    try {
+      const res = await api.getReviewsByProduct(product.id);
+      setReviews(Array.isArray(res) ? res : []);
+    } catch (err) {
+      console.error("Lỗi lấy đánh giá sản phẩm:", err);
+    }
+  };
+
   // Reset states when the selected product changes
   useEffect(() => {
     setActiveImageIdx(0);
@@ -54,7 +70,43 @@ export default function ProductDetailModal({
         .slice(0, 4);
       setRelatedProducts(filtered);
     }
+
+    loadProductReviews();
+    if (product && product.id) {
+      api.trackFunnel('VIEW_PRODUCT', product.id);
+    }
   }, [product, allProducts, category, sizes, colors]);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) {
+      if (showAlert) showAlert('ĐÁNH GIÁ', 'Vui lòng nhập nội dung đánh giá!', 'warning');
+      else alert('Vui lòng nhập nội dung đánh giá!');
+      return;
+    }
+    setIsSubmittingReview(true);
+    try {
+      await api.addReview({
+        productId: product.id,
+        rating: newRating,
+        comment: newComment.trim()
+      });
+      if (showAlert) showAlert('THÀNH CÔNG', 'Gửi đánh giá sản phẩm thành công!', 'success');
+      else alert('Gửi đánh giá sản phẩm thành công!');
+      setNewComment("");
+      loadProductReviews();
+    } catch (err) {
+      if (showAlert) showAlert('LỖI', err.message || 'Bạn cần đăng nhập để đánh giá sản phẩm này!', 'error');
+      else alert(err.message || 'Bạn cần đăng nhập để đánh giá sản phẩm này!');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const displayReviewsCount = reviews.length > 0 ? reviews.length : (reviewsCount || 0);
+  const displayRating = reviews.length > 0 
+    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length)
+    : (rating || 5.0);
 
   const formatPrice = (val) => {
     return val.toLocaleString('vi-VN') + ' ₫';
@@ -77,6 +129,9 @@ export default function ProductDetailModal({
   };
 
   const handleAddToCartClick = () => {
+    if (product && product.id) {
+      api.trackFunnel('ADD_TO_CART', product.id);
+    }
     onAddToCart({
       ...product,
       selectedSize,
@@ -86,6 +141,9 @@ export default function ProductDetailModal({
   };
 
   const handleBuyNowClick = () => {
+    if (product && product.id) {
+      api.trackFunnel('ADD_TO_CART', product.id);
+    }
     onBuyNow({
       ...product,
       selectedSize,
@@ -138,9 +196,9 @@ export default function ProductDetailModal({
             <div className="detail-meta">
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent)', fontWeight: 600 }}>
                 <Star size={16} fill="currentColor" />
-                <span>{rating ? rating.toFixed(1) : "5.0"}</span>
+                <span>{displayRating ? displayRating.toFixed(1) : "5.0"}</span>
               </div>
-              <span style={{ color: 'var(--secondary-muted)' }}>{reviewsCount || 0} Đánh giá</span>
+              <span style={{ color: 'var(--secondary-muted)' }}>{displayReviewsCount} Đánh giá</span>
               <span style={{ color: '#ddd' }}>|</span>
               <span className="detail-sold">Đã bán {soldCount || 0} sản phẩm</span>
             </div>
@@ -309,6 +367,69 @@ export default function ProductDetailModal({
             </div>
           </div>
         )}
+
+        {/* REVIEWS SECTION */}
+        <div style={{ marginTop: '30px', borderTop: '1px solid var(--border-light)', paddingTop: '24px', paddingLeft: '24px', paddingRight: '24px', paddingBottom: '24px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '16px', color: 'var(--secondary)' }}>Ý Kiến Khách Hàng ({reviews.length})</h3>
+
+          {/* Form để viết đánh giá mới */}
+          <form onSubmit={handleSubmitReview} style={{ marginBottom: '24px', background: 'var(--bg-main)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
+            <h4 style={{ fontSize: '13.5px', fontWeight: 700, marginBottom: '12px', color: 'var(--secondary)' }}>Viết đánh giá của bạn:</h4>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--secondary-muted)' }}>Đánh giá sản phẩm:</span>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star 
+                    key={star} 
+                    size={20} 
+                    onClick={() => setNewRating(star)} 
+                    fill={star <= newRating ? "var(--accent)" : "none"} 
+                    stroke="var(--accent)" 
+                    style={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </div>
+            </div>
+            <textarea
+              rows="3"
+              placeholder="Chia sẻ nhận xét của bạn về sản phẩm này (chất liệu, kích thước, form dáng...)"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', fontSize: '13px', fontFamily: 'inherit', outline: 'none', background: 'white' }}
+              required
+            />
+            <button 
+              type="submit" 
+              disabled={isSubmittingReview}
+              className="btn-primary-filled" 
+              style={{ marginTop: '12px', padding: '8px 16px', fontSize: '13px', width: 'auto', borderRadius: 'var(--radius-sm)' }}
+            >
+              {isSubmittingReview ? 'Đang gửi...' : 'Gửi Đánh Giá'}
+            </button>
+          </form>
+
+          {/* Danh sách các đánh giá đã có */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {reviews.length === 0 ? (
+              <p style={{ color: 'var(--secondary-muted)', fontSize: '13px', fontStyle: 'italic', margin: '10px 0' }}>Sản phẩm này chưa có đánh giá nào. Hãy là người đầu tiên nhận xét!</p>
+            ) : (
+              reviews.map((rev) => (
+                <div key={rev.id} style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '13.5px', color: 'var(--secondary)' }}>{rev.userName || "Khách hàng"}</strong>
+                    <span style={{ fontSize: '11px', color: 'var(--secondary-muted)' }}>{rev.reviewDate ? new Date(rev.reviewDate).toLocaleDateString('vi-VN') : ""}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '2px', color: 'var(--accent)', marginBottom: '8px' }}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} size={14} fill={i < rev.rating ? "currentColor" : "none"} stroke="currentColor" />
+                    ))}
+                  </div>
+                  <p style={{ fontSize: '13px', color: 'var(--secondary)', margin: 0, lineHeight: '1.5' }}>{rev.comment}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

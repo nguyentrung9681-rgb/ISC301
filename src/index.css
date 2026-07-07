@@ -1880,9 +1880,9 @@ button {
   transform: scale(1.05);
 }
 
-/* ==========================================
-   ADMIN PORTAL & SYSTEM (STAFF & MANAGER)
-   ========================================== */
+/* ==========================================================================
+   ADMIN PORTAL & SYSTEM (MANAGER)
+   ========================================================================== */
 .admin-layout {
   display: grid;
   grid-template-columns: 240px 1fr;
@@ -2254,6 +2254,72 @@ button {
   color: white;
 }
 
+/* Admin Upload Image Preview */
+.upload-preview-box {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.upload-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.upload-delete-btn:hover {
+  background: #f44336;
+  transform: scale(1.1);
+}
+
+.upload-delete-btn.small {
+  width: 18px;
+  height: 18px;
+}
+
+.gallery-preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.gallery-preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+}
+
+.gallery-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Reject Modal Popup Dialog */
 .reject-dialog-overlay {
   position: fixed;
@@ -2338,7 +2404,7 @@ button {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  grid-template-columns: 1.5fr 1fr 1.2fr;
   gap: 40px;
   margin-bottom: 40px;
 }
@@ -2623,4 +2689,203 @@ button {
     grid-template-columns: 1fr;
     gap: 30px;
   }
+}
+
+/* =========================================================================
+   PHỄU CHUYỂN ĐỔI (CONVERSION FUNNEL) STYLES
+   ========================================================================= */
+.funnel-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 15px;
+}
+
+.funnel-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #fcfcfc;
+  border: 1px solid var(--border-light);
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.funnel-row:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  background: #ffffff;
+  border-color: rgba(255, 87, 34, 0.2);
+}
+
+.funnel-label-col {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.funnel-icon-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.bg-view { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
+.bg-cart { background: linear-gradient(135deg, #854d0e, #eab308); }
+.bg-checkout { background: linear-gradient(135deg, #581c87, #a855f7); }
+.bg-purchase { background: linear-gradient(135deg, #7c2d12, #ff5722); }
+
+.funnel-step-name {
+  display: flex;
+  flex-direction: column;
+}
+
+.funnel-step-name .step-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--secondary);
+}
+
+.funnel-step-name .step-subtitle {
+  font-size: 11px;
+  color: var(--secondary-muted);
+  margin-top: 2px;
+}
+
+.funnel-bar-col {
+  flex-grow: 1;
+  background: var(--bg-main);
+  height: 32px;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-light);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.funnel-bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 14px;
+  border-radius: 20px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.bar-view {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.bar-cart {
+  background: linear-gradient(90deg, #eab308, #fde047);
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.2);
+}
+
+.bar-checkout {
+  background: linear-gradient(90deg, #a855f7, #c084fc);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.2);
+}
+
+.bar-purchase {
+  background: var(--primary-gradient);
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.25);
+}
+
+.funnel-bar-value {
+  color: white;
+  font-weight: 700;
+  font-size: 11.5px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  white-space: nowrap;
+}
+
+.funnel-rate-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 110px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.funnel-rate-main {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--secondary);
+}
+
+.funnel-rate-sub {
+  font-size: 10.5px;
+  color: var(--secondary-muted);
+  margin-top: 1px;
+}
+
+@media (max-width: 768px) {
+  .funnel-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+  
+  .funnel-label-col {
+    width: 100%;
+  }
+  
+  .funnel-bar-col {
+    width: 100%;
+  }
+  
+  .funnel-rate-col {
+    width: 100%;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+/* AI Chatbot Custom Animations & Styles */
+@keyframes ai-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1.0);
+  }
+}
+
+.ai-typing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary);
+  border-radius: 50%;
+  display: inline-block;
+  animation: ai-bounce 1.4s infinite ease-in-out both;
+}
+
+.ai-typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.ai-typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+/* Premium Card hover effects */
+.chatbot-product-card {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.chatbot-product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.12);
+  border-color: var(--primary-light) !important;
 }
