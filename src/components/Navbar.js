@@ -177,7 +177,7 @@ export default function Navbar({
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
-                  {currentUser.role === 'manager' ? 'Quản Lý' : currentUser.role === 'staff' ? 'Nhân Viên' : 'Khách Hàng'}
+                  {currentUser.role === 'manager' ? 'Quản Lý' : 'Khách Hàng'}
                 </span>
               </div>
 

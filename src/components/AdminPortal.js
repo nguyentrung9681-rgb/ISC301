@@ -587,11 +587,26 @@ export default function AdminPortal({
       return;
     }
 
+<<<<<<< HEAD
     const selectedCategory = activeCategories.find((category) => category.code === prodCategory);
     const uniqueColors = selectedColors
       .map(normalizeColor)
       .filter((color) => color?.name)
       .filter((color, index, arr) => arr.findIndex((item) => item.name.toLowerCase() === color.name.toLowerCase()) === index);
+=======
+    if (!prodImageUrl.trim()) {
+      if (showAlert) showAlert('THIẾU ẢNH', 'Vui lòng nhập đường dẫn URL ảnh hợp lệ!', 'warning');
+      else alert('Vui lòng nhập đường dẫn ảnh!');
+      return;
+    }
+
+    const categoriesLabels = {
+      ao: "Áo",
+      quan: "Quần",
+      vay: "Váy",
+      phukien: "Phụ kiện"
+    };
+>>>>>>> origin/main
 
     const newProduct = {
       name: prodName.trim(),
@@ -600,11 +615,19 @@ export default function AdminPortal({
       category: prodCategory,
       categoryLabel: selectedCategory?.name || prodCategory,
       gender: prodGender,
+<<<<<<< HEAD
       sizes: selectedSizes.length > 0 ? selectedSizes : ['One Size'],
       colors: uniqueColors.length > 0 ? uniqueColors : [{ name: 'Mặc định', hex: '#CCCCCC' }],
       imageUrl: prodImageUrl.trim(),
       images: [prodImageUrl.trim()],
       description: prodDesc.trim() || 'Sản phẩm thời trang chất lượng cao.',
+=======
+      sizes: selectedSizes.length > 0 ? selectedSizes : ["One Size"],
+      colors: selectedColors.length > 0 ? selectedColors : [{ name: "Mặc định", hex: "#ccc" }],
+      imageUrl: prodImageUrl.trim(),
+      images: [prodImageUrl.trim()],
+      description: prodDesc.trim() || "Sản phẩm thời trang chất lượng cao.",
+>>>>>>> origin/main
       inventory: Number(prodInventory),
       rating: 5.0,
       reviewsCount: 0,
@@ -618,17 +641,34 @@ export default function AdminPortal({
     } else {
       onAddProduct(newProduct);
     }
+<<<<<<< HEAD
+=======
+    
+    handleClearForm();
+>>>>>>> origin/main
 
     handleClearForm();
     setActiveMenu('products-list');
   };
 
+<<<<<<< HEAD
+=======
+  const handleRoleChange = (role) => {
+    setCurrentRole(role);
+  };
+
+  // CALCULATE ANALYTICS (REAL STATISTICS!)
+>>>>>>> origin/main
   const totalRevenue = orders
     .filter((o) => o.status === 'Đã giao')
     .reduce((sum, o) => sum + o.totalPrice, 0);
 
   const activeProductsCount = products.length;
+<<<<<<< HEAD
   const outOfStockCount = products.filter((p) => p.inventory < 5 && p.status === 'approved').length;
+=======
+  const outOfStockCount = products.filter(p => p.inventory < 5 && p.status === 'approved').length;
+>>>>>>> origin/main
 
   return (
     <div className="container admin-layout">
@@ -640,6 +680,7 @@ export default function AdminPortal({
             color: currentRole === 'manager' ? '#2e7d32' : '#f57c00'
           }}>
             <ShieldCheck size={20} />
+<<<<<<< HEAD
             <span>{currentRole === 'manager' ? 'Quản Lý' : 'Nhân Viên'}</span>
           </span>
         </div>
@@ -653,6 +694,28 @@ export default function AdminPortal({
           )}
 
           <button className={`admin-menu-item ${activeMenu === 'products-list' ? 'active' : ''}`} onClick={() => setActiveMenu('products-list')}>
+=======
+            <span>Quản Lý</span>
+          </span>
+        </div>
+
+
+
+        {/* MENUS */}
+        <div className="admin-menu">
+          <button 
+            className={`admin-menu-item ${activeMenu === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('analytics')}
+          >
+            <BarChart3 size={16} />
+            <span>Thống Kê Doanh Thu</span>
+          </button>
+
+          <button 
+            className={`admin-menu-item ${activeMenu === 'products-list' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('products-list')}
+          >
+>>>>>>> origin/main
             <ListFilter size={16} />
             <span>Danh Sách Sản Phẩm</span>
           </button>
@@ -703,6 +766,13 @@ export default function AdminPortal({
       </div>
 
       <div className="admin-content-card animate-fade">
+<<<<<<< HEAD
+=======
+        
+        {/* =========================================================================
+           TAB: ANALYTICS (MANAGER ONLY)
+           ========================================================================= */}
+>>>>>>> origin/main
         {activeMenu === 'analytics' && (
           <div>
             <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '24px' }}>Báo Cáo Doanh Thu & Hệ Thống</h2>
@@ -1003,16 +1073,37 @@ export default function AdminPortal({
 
             <div style={{ display: 'flex', gap: '16px', padding: '20px', background: '#e3f2fd', borderRadius: 'var(--radius-md)', color: '#0d47a1', fontSize: '14px', alignItems: 'center', marginTop: '30px' }}>
               <InfoIcon />
+<<<<<<< HEAD
               <span><strong>Mẹo Quản Lý:</strong> Dữ liệu trên được thống kê thời gian thực từ hoạt động mua sắm của khách hàng. Hãy theo dõi cảnh báo tồn kho để bổ sung hàng hóa kịp thời.</span>
+=======
+              <span><strong>Mẹo Quản Lý:</strong> Theo dõi các thông số hệ thống để điều chỉnh chiến lược kinh doanh phù hợp.</span>
+>>>>>>> origin/main
             </div>
           </div>
         )}
 
+<<<<<<< HEAD
         {activeMenu === 'products-list' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ fontSize: '22px', fontWeight: 800 }}>Quản Lý Toàn Bộ Sản Phẩm</h2>
               <button className="btn-admin-submit" onClick={() => setActiveMenu('add-product')} style={{ padding: '8px 16px', borderRadius: 'var(--radius-full)' }}>
+=======
+        {/* =========================================================================
+           TAB: PRODUCT LIST (MANAGER)
+           ========================================================================= */}
+        {activeMenu === 'products-list' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '22px', fontWeight: 800 }}>
+                Quản Lý Toàn Bộ Sản Phẩm
+              </h2>
+              <button 
+                className="btn-admin-submit" 
+                onClick={() => setActiveMenu('add-product')}
+                style={{ padding: '8px 16px', borderRadius: 'var(--radius-full)' }}
+              >
+>>>>>>> origin/main
                 + Thêm Sản Phẩm
               </button>
             </div>
@@ -1024,7 +1115,11 @@ export default function AdminPortal({
                   <th>Giá Bán</th>
                   <th>Kho hàng</th>
                   <th>Danh mục</th>
+<<<<<<< HEAD
                   <th>Trạng thái</th>
+=======
+                  <th>Người tạo</th>
+>>>>>>> origin/main
                   <th style={{ textAlign: 'right' }}>Hành động</th>
                 </tr>
               </thead>
@@ -1036,6 +1131,7 @@ export default function AdminPortal({
                     </td>
                   </tr>
                 ) : (
+<<<<<<< HEAD
                   paginatedProducts.map((prod) => (
                     <tr key={prod.id}>
                       <td>
@@ -1096,6 +1192,59 @@ export default function AdminPortal({
                       </td>
                     </tr>
                   ))
+=======
+                  products
+                    .map((prod) => {
+                      const isOwnerOrManager = true;
+
+                      return (
+                        <tr key={prod.id}>
+                          <td>
+                            <div className="admin-table-product-cell">
+                              <img src={prod.images[0]} alt="" className="admin-table-product-img" />
+                              <div>
+                                <div style={{ fontWeight: 600 }}>{prod.name}</div>
+                                <div style={{ fontSize: '11px', color: 'var(--secondary-muted)' }}>Mã: {prod.id}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                            {prod.price.toLocaleString('vi-VN')} ₫
+                          </td>
+                          <td>
+                            <span style={{ fontWeight: 700, color: prod.inventory < 5 ? '#c62828' : 'inherit' }}>
+                              {prod.inventory} cái
+                            </span>
+                            {prod.inventory < 5 && <span style={{ color: '#c62828', fontSize: '10px', marginLeft: '6px', fontWeight: 700 }}>(Sắp hết!)</span>}
+                          </td>
+                          <td>{prod.categoryLabel}</td>
+                          <td>{prod.createdBy === 'manager' ? 'Quản lý' : 'Khác'}</td>
+                          <td style={{ textAlign: 'right' }}>
+                            {isOwnerOrManager ? (
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button 
+                                  onClick={() => openEditForm(prod)} 
+                                  style={{ color: 'var(--primary)', cursor: 'pointer', background: 'transparent', border: 'none', padding: '4px' }}
+                                  title="Sửa Sản Phẩm"
+                                >
+                                  <Edit size={16} />
+                                </button>
+                                <button 
+                                  onClick={() => onDeleteProduct(prod.id)} 
+                                  style={{ color: '#c62828', cursor: 'pointer', background: 'transparent', border: 'none', padding: '4px' }}
+                                  title="Xóa Sản Phẩm"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '12px', color: '#ccc' }}>Không có quyền</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+>>>>>>> origin/main
                 )}
               </tbody>
             </table>
@@ -1103,6 +1252,7 @@ export default function AdminPortal({
           </div>
         )}
 
+<<<<<<< HEAD
         {activeMenu === 'categories' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -1193,13 +1343,22 @@ export default function AdminPortal({
           </div>
         )}
 
+=======
+        {/* =========================================================================
+           TAB: ADD/EDIT PRODUCT FORM (MANAGER)
+           ========================================================================= */}
+>>>>>>> origin/main
         {activeMenu === 'add-product' && (
           <div>
             <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '6px' }}>
               {editProductId ? 'Chỉnh Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới Vào Hệ Thống'}
             </h2>
             <p style={{ fontSize: '13px', color: 'var(--secondary-muted)', marginBottom: '24px' }}>
+<<<<<<< HEAD
               Quản lý có thể chọn size/màu mặc định hoặc tự nhập thêm theo sản phẩm thực tế.
+=======
+              💡 Phân quyền Quản Lý: Đảm bảo dữ liệu theo chuẩn Backend.
+>>>>>>> origin/main
             </p>
 
             <form onSubmit={handleFormSubmit}>
@@ -1346,6 +1505,7 @@ export default function AdminPortal({
               </div>
 
               <div className="admin-form-section-title">3. Hình ảnh & Mô tả chi tiết</div>
+<<<<<<< HEAD
 
               <div className="admin-form-grid" style={{ marginBottom: '20px' }}>
                 <div className="admin-form-group full-width">
@@ -1357,6 +1517,23 @@ export default function AdminPortal({
                   {prodImagePreview && (
                     <div style={{ marginTop: '12px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-light)', display: 'inline-block' }}>
                       <img src={prodImagePreview} alt="Preview" style={{ width: '120px', height: '120px', objectFit: 'cover', display: 'block' }} />
+=======
+              
+              <div className="admin-form-grid" style={{ marginBottom: '20px' }}>
+                <div className="admin-form-group full-width">
+                  <label className="input-label">Đường dẫn ảnh sản phẩm (URL) *</label>
+                  <input 
+                    type="url" 
+                    placeholder="Ví dụ: https://example.com/image.jpg" 
+                    className="admin-input"
+                    value={prodImageUrl}
+                    onChange={(e) => setProdImageUrl(e.target.value)}
+                    required
+                  />
+                  {prodImageUrl && (
+                    <div style={{ marginTop: '12px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-light)', display: 'inline-block' }}>
+                      <img src={prodImageUrl} alt="Preview" style={{ width: '120px', height: '120px', objectFit: 'cover', display: 'block' }} onError={(e) => { e.target.style.display = 'none'; }} />
+>>>>>>> origin/main
                     </div>
                   )}
                 </div>
@@ -1378,7 +1555,11 @@ export default function AdminPortal({
                 >
                   Hủy bỏ
                 </button>
+<<<<<<< HEAD
                 <button type="submit" className="btn-admin-submit" disabled={isUploadingImage}>
+=======
+                <button type="submit" className="btn-admin-submit">
+>>>>>>> origin/main
                   {editProductId ? 'Cập Nhật Sản Phẩm' : 'Thêm Sản Phẩm'}
                 </button>
               </div>
@@ -1386,6 +1567,12 @@ export default function AdminPortal({
           </div>
         )}
 
+<<<<<<< HEAD
+=======
+        {/* =========================================================================
+           TAB: ORDERS LIST (MANAGER)
+           ========================================================================= */}
+>>>>>>> origin/main
         {activeMenu === 'orders-list' && (
           <div>
             <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '20px' }}>Quản Lý Đơn Đặt Hàng Của Khách</h2>
@@ -1853,6 +2040,10 @@ export default function AdminPortal({
           </div>
         )}
       </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
     </div>
   );
 }

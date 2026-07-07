@@ -127,6 +127,7 @@ export default function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+<<<<<<< HEAD
         const [productsRes, categoriesRes, cartRes, wishlistRes, ordersRes] = await Promise.all([
           api.getProducts().catch(() => []),
           api.getCategories().catch(() => []),
@@ -257,6 +258,62 @@ export default function App() {
     }
   }, [appliedVoucher]);
 
+=======
+        const [productsRes, cartRes, wishlistRes, ordersRes] = await Promise.all([
+          api.getProducts().catch(() => []),
+          // Assuming user needs to be logged in to fetch these, or API ignores without auth
+          currentUser ? api.getCart().catch(() => ({ data: [] })) : { data: [] },
+          currentUser ? api.getWishlist().catch(() => ({ data: [] })) : { data: [] },
+          currentUser?.role === 'manager' ? api.getAdminOrders().catch(() => []) : (currentUser ? api.getOrderHistory().catch(() => ({ data: [] })) : { data: [] })
+        ]);
+
+        // Map products
+        const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
+          id: p.id,
+          name: p.productName || p.name,
+          description: p.description || '',
+          price: p.price || 0,
+          category: p.category || 'ao',
+          categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
+          sizes: ['S', 'M', 'L', 'XL'],
+          colors: [{ name: 'Mặc định', hex: '#000' }],
+          inventory: p.stockQuantity || 100,
+          soldCount: 0,
+          status: 'approved',
+          isNew: true,
+          isBestSeller: p.ratingAverage >= 4.5,
+          images: parseImages(p.imageUrl)
+        }));
+        setProducts(mappedProducts);
+
+        // Map cart
+        const mapCart = (backendCart) => (Array.isArray(backendCart) ? backendCart : []).map(c => ({
+          ...c,
+          cartItemId: c.id,
+          id: c.product?.id || c.id,
+          name: c.product?.productName || c.product?.name || c.name || 'Sản phẩm',
+          price: c.product?.price || c.price || 0,
+          inventory: c.product?.stockQuantity || c.inventory || 100,
+          quantity: c.quantity || 1,
+          images: c.product?.imageUrl ? parseImages(c.product.imageUrl) : (c.images || ['https://via.placeholder.com/400x500']),
+          selectedSize: c.selectedSize || 'M',
+          selectedColor: c.selectedColor || { name: 'Mặc định', hex: '#000' }
+        }));
+
+        setCart(mapCart(cartRes.data || cartRes || []));
+
+        setWishlist(wishlistRes.data || wishlistRes || []);
+        setOrders(ordersRes.data || ordersRes || []);
+      } catch (err) {
+        console.error('Error fetching initial data:', err);
+      }
+    };
+    fetchData();
+  }, [currentUser]); // Refetch when user changes
+
+  // Remove persistence to localStorage since we use API now
+
+>>>>>>> origin/main
 
   useEffect(() => {
     if (currentUser) {
@@ -303,10 +360,28 @@ export default function App() {
         password,
       });
 
+<<<<<<< HEAD
       const user = normalizeUser(res);
       localStorage.setItem('jusst_user', JSON.stringify(user));
       setCurrentUser(user);
 
+=======
+      const user = {
+        ...res,
+        name: res.fullName || res.name || "User",
+        role: res.role
+          ? res.role.toLowerCase()
+          : "customer",
+      };
+
+      setCurrentUser(user);
+
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify(user)
+      );
+
+>>>>>>> origin/main
       setShowLoginModal(false);
 
       addToast("Đăng nhập thành công!", "success");
@@ -319,6 +394,7 @@ export default function App() {
     }
   };
 
+<<<<<<< HEAD
   const handleGoogleLogin = async (googleData) => {
     try {
       const res = await api.loginGoogle(googleData);
@@ -330,11 +406,37 @@ export default function App() {
     } catch (err) {
       addToast(
         err.message || "Đăng nhập bằng Google thất bại",
+=======
+  const handleRegister = async (userData) => {
+    try {
+
+      await api.register({
+        email: userData.email,
+        password: userData.password,
+        fullName: userData.fullName,
+        phone: userData.phone,
+      });
+
+      addToast(
+        "Đăng ký thành công!",
+        "success"
+      );
+
+      await handleLogin(
+        userData.email,
+        userData.password
+      );
+
+    } catch (err) {
+      addToast(
+        err.message || "Đăng ký thất bại",
+>>>>>>> origin/main
         "error"
       );
     }
   };
 
+<<<<<<< HEAD
   const handleRegister = async (userData) => {
     try {
 
@@ -363,13 +465,25 @@ export default function App() {
     }
   };
 
+=======
+>>>>>>> origin/main
   const handleLogout = async () => {
     try {
 
       await api.logout();
+<<<<<<< HEAD
       localStorage.removeItem('jusst_user');
       setCurrentUser(null);
 
+=======
+
+      setCurrentUser(null);
+
+      localStorage.removeItem(
+        "currentUser"
+      );
+
+>>>>>>> origin/main
       addToast(
         "Đăng xuất thành công",
         "success"
@@ -474,7 +588,11 @@ export default function App() {
   const fetchAndSetCart = async () => {
     try {
       const cartRes = await api.getCart();
+<<<<<<< HEAD
       const rawCart = Array.isArray(cartRes) ? cartRes : [];
+=======
+      const rawCart = cartRes.data || cartRes || [];
+>>>>>>> origin/main
       const mapCart = (backendCart) => (Array.isArray(backendCart) ? backendCart : []).map(c => ({
         ...c,
         cartItemId: c.id,
@@ -488,7 +606,10 @@ export default function App() {
         selectedColor: c.selectedColor || { name: 'Mặc định', hex: '#000' }
       }));
       setCart(mapCart(rawCart));
+<<<<<<< HEAD
       setCart(rawCart.map(normalizeCartItem));
+=======
+>>>>>>> origin/main
     } catch (err) {
       console.error('Error refreshing cart:', err);
     }
@@ -560,6 +681,7 @@ export default function App() {
   };
 
 
+<<<<<<< HEAD
   const handleApplyVoucher = async (code) => {
     if (!code || !code.trim()) {
       showAlert('THIẾU THÔNG TIN', 'Vui lòng nhập mã giảm giá!', 'warning');
@@ -580,6 +702,11 @@ export default function App() {
 
   // --- PLACE ORDER FLOW ---
   const handlePlaceOrder = async ({ name, phone, address, note, paymentMethod }) => {
+=======
+  // --- PLACE ORDER FLOW ---
+  const handlePlaceOrderSubmit = async (e) => {
+    e.preventDefault();
+>>>>>>> origin/main
     if (cart.length === 0) {
       showAlert('GIỎ HÀNG TRỐNG', 'Giỏ hàng đang trống! Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt hàng.', 'warning');
       return;
@@ -590,6 +717,7 @@ export default function App() {
     }
 
     try {
+<<<<<<< HEAD
       const isCod = paymentMethod === 'COD';
       const pm = isCod ? "COD" : "Chuyển khoản";
       setLastOrderPaymentMethod(paymentMethod);
@@ -726,6 +854,138 @@ export default function App() {
       await fetchProducts();
     } catch (err) {
       addToast(err.message || 'Lỗi cập nhật trạng thái sản phẩm', 'error');
+=======
+      await api.checkout(checkoutAddress.trim(), checkoutPhone.trim(), paymentMethod === 'COD' ? "COD" : "Chuyển khoản");
+
+      setCart([]);
+
+      const orderId = "JUSST" + Math.floor(100000 + Math.random() * 900000);
+      setLastOrderId(orderId);
+      setShowSuccessPopup(true);
+
+      // Refresh orders
+      if (currentUser) {
+        const ordersRes = currentUser.role === 'manager' ? await api.getAdminOrders().catch(() => []) : await api.getOrderHistory().catch(() => ({ data: [] }));
+        setOrders(ordersRes.data || ordersRes || []);
+      }
+
+      // Refresh products (inventory updated)
+      const productsRes = await api.getProducts().catch(() => []);
+      const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
+        id: p.id,
+        name: p.productName || p.name,
+        description: p.description || '',
+        price: p.price || 0,
+        category: p.category || 'ao',
+        categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
+        sizes: ['S', 'M', 'L', 'XL'],
+        colors: [{ name: 'Mặc định', hex: '#000' }],
+        inventory: p.stockQuantity || 100,
+        soldCount: 0,
+        status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
+        isNew: true,
+        isBestSeller: p.ratingAverage >= 4.5,
+        images: parseImages(p.imageUrl)
+      }));
+      setProducts(mappedProducts);
+
+      // Clear form
+      setCheckoutName('');
+      setCheckoutPhone('');
+      setCheckoutAddress('');
+      setCheckoutNote('');
+    } catch (err) {
+      addToast(err.message || 'Lỗi khi đặt hàng', 'error');
+    }
+  };
+
+
+  // --- ADMIN PORTAL ACTIONS ---
+  const fetchProducts = async () => {
+    try {
+      const productsRes = await api.getProducts().catch(() => []);
+      const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
+        id: p.id,
+        name: p.productName || p.name,
+        description: p.description || '',
+        price: p.price || 0,
+        category: p.category || 'ao',
+        categoryLabel: p.category === 'ao' ? 'Áo' : p.category === 'quan' ? 'Quần' : p.category === 'vay' ? 'Váy' : 'Phụ kiện',
+        sizes: ['S', 'M', 'L', 'XL'],
+        colors: [{ name: 'Mặc định', hex: '#000' }],
+        inventory: p.stockQuantity || 100,
+        soldCount: 0,
+        status: p.productStatus === 'ACTIVE' ? 'approved' : 'pending',
+        isNew: true,
+        isBestSeller: p.ratingAverage >= 4.5,
+        images: parseImages(p.imageUrl)
+      }));
+      setProducts(mappedProducts);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleAddProduct = async (newProduct) => {
+    try {
+      const payload = {
+        productName: newProduct.name,
+        description: newProduct.description || '',
+        price: Number(newProduct.price || 0),
+        stockQuantity: Number(newProduct.inventory || 100),
+        imageUrl: newProduct.imageUrl || '',
+        category: newProduct.category || 'ao'
+      };
+
+      await api.addProduct(payload);
+      await fetchProducts();
+
+      addToast(`Sản phẩm "${newProduct.name}" đã được thêm thành công!`, 'success');
+    } catch (err) {
+      addToast(err.message || 'Lỗi thêm sản phẩm', 'error');
+    }
+  };
+
+  const handleEditProduct = async (id, newProduct) => {
+    try {
+      const payload = {
+        productName: newProduct.name,
+        description: newProduct.description || '',
+        price: Number(newProduct.price || 0),
+        stockQuantity: Number(newProduct.inventory || 100),
+        imageUrl: newProduct.imageUrl || '',
+        category: newProduct.category || 'ao'
+      };
+
+      await api.updateProduct(id, payload);
+      await fetchProducts();
+
+      addToast(`Sản phẩm "${newProduct.name}" đã được cập nhật thành công!`, 'success');
+    } catch (err) {
+      addToast(err.message || 'Lỗi cập nhật sản phẩm', 'error');
+    }
+  };
+
+  const handleUpdateProductStatus = (id, newStatus, reason = '') => {
+    // The backend swagger doesn't clearly support updating status directly, so we just mock it on frontend
+    const updated = products.map((p) => {
+      if (p.id === id) {
+        return {
+          ...p,
+          status: newStatus,
+          rejectReason: reason
+        };
+      }
+      return p;
+    });
+    setProducts(updated);
+
+    const prod = products.find(p => p.id === id);
+    if (newStatus === 'approved') {
+      addToast(`Đã PHÊ DUYỆT sản phẩm "${prod?.name || ''}" đăng bán!`, 'success');
+    } else if (newStatus === 'rejected') {
+      addToast(`Đã TỪ CHỐI sản phẩm "${prod?.name || ''}".`, 'info');
+>>>>>>> origin/main
     }
   };
 
@@ -748,6 +1008,7 @@ export default function App() {
   };
 
   const handleUpdateOrderStatus = async (id, newStatus) => {
+<<<<<<< HEAD
     if (newStatus === 'Hủy đơn') {
       const order = orders.find(o => o.id === id);
       const isPaid = order && order.paymentStatus === 'PAID';
@@ -776,12 +1037,25 @@ export default function App() {
       await api.updateOrderStatus(id, newStatus);
       const ordersRes = await api.getAdminOrders().catch(() => []);
       setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
+=======
+    try {
+      if (newStatus === 'Hủy đơn') {
+        await api.adminCancelOrder(id);
+      } else {
+        await api.updateOrderStatus(id, newStatus);
+      }
+
+      const ordersRes = await api.getAdminOrders().catch(() => []);
+      setOrders(ordersRes.data || ordersRes || []);
+
+>>>>>>> origin/main
       addToast(`Đã chuyển đơn #${id} sang trạng thái "${newStatus}"!`, 'success');
     } catch (err) {
       addToast(err.message || 'Lỗi cập nhật trạng thái đơn hàng', 'error');
     }
   };
 
+<<<<<<< HEAD
   const handleClientCancelOrder = async (id) => {
     showConfirm(
       'HỦY ĐƠN HÀNG CỦA BẠN',
@@ -798,6 +1072,40 @@ export default function App() {
         } catch (err) {
           addToast(err.message || 'Lỗi hủy đơn hàng', 'error');
         }
+=======
+
+  // --- FILTER SHOP SEARCH FLOW ---
+  const activeApprovedProducts = products;
+
+  // Lọc sản phẩm ở trang Shop dựa trên các bộ lọc
+  const filteredProducts = activeApprovedProducts.filter((prod) => {
+    // 1. Search Query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchName = prod.name.toLowerCase().includes(q);
+      const matchDesc = prod.description.toLowerCase().includes(q);
+      const matchCat = prod.categoryLabel.toLowerCase().includes(q);
+      if (!matchName && !matchDesc && !matchCat) return false;
+    }
+
+    // 2. Category
+    if (filterCategory && prod.category !== filterCategory) return false;
+
+    // 3. Size
+    if (filterSize && !prod.sizes.includes(filterSize)) return false;
+
+    // 4. Color
+    if (filterColor && !prod.colors.some(c => c.name === filterColor)) return false;
+
+    // 5. Price range
+    if (filterPriceRange) {
+      if (filterPriceRange === '0-200') {
+        if (prod.price > 200000) return false;
+      } else if (filterPriceRange === '200-400') {
+        if (prod.price < 200000 || prod.price > 400000) return false;
+      } else if (filterPriceRange === '400+') {
+        if (prod.price < 400000) return false;
+>>>>>>> origin/main
       }
     );
   };
@@ -957,6 +1265,7 @@ export default function App() {
               </div>
 
               <div className="categories-grid" style={{ marginTop: '20px' }}>
+<<<<<<< HEAD
                 {categories.map((cat, idx) => {
                   const preset = {
                     ao: { icon: "👕", desc: "T-Shirt, Hoodie, Polo" },
@@ -979,6 +1288,24 @@ export default function App() {
                       </div>
                       <h3>{cat.name.toUpperCase()}</h3>
                       <span>{products.filter(p => p.category === cat.code && p.status === 'approved').length} sản phẩm đang bán</span>
+=======
+                {[
+                  { name: "ÁO THỜI TRANG", type: "ao", desc: "T-Shirt, Hoodie, Polo", icon: "👕", count: products.filter(p => p.category === 'ao' && p.status === 'approved').length },
+                  { name: "QUẦN STYLISH", type: "quan", desc: "Baggy Jean, Jogger, Short", icon: "👖", count: products.filter(p => p.category === 'quan' && p.status === 'approved').length },
+                  { name: "VÁY XINH", type: "vay", desc: "Floral Dress, Tennis Skirt", icon: "👗", count: products.filter(p => p.category === 'vay' && p.status === 'approved').length },
+                  { name: "PHỤ KIỆN ĐỘC ĐÁO", type: "phukien", desc: "Cap, Tote Bag, Retro Socks", icon: "🧢", count: products.filter(p => p.category === 'phukien' && p.status === 'approved').length },
+                ].map((cat, idx) => (
+                  <div
+                    key={idx}
+                    className="category-card"
+                    onClick={() => {
+                      setFilterCategory(cat.type);
+                      setCurrentPage('shop');
+                    }}
+                  >
+                    <div className="category-image-wrapper" style={{ fontSize: '32px' }}>
+                      {cat.icon}
+>>>>>>> origin/main
                     </div>
                   );
                 })}
@@ -1125,6 +1452,7 @@ export default function App() {
            PORTAL: KHÁCH HÀNG - DANH SÁCH SẢN PHẨM (SHOP)
            ========================================================================= */}
         {!isAdminMode && currentPage === 'shop' && (
+<<<<<<< HEAD
           <ShopPage
             products={products}
             categories={categories}
@@ -1145,6 +1473,189 @@ export default function App() {
             wishlist={wishlist}
             handleToggleWishlist={handleToggleWishlist}
           />
+=======
+          <div className="container" style={{ marginTop: '40px' }}>
+
+            <div className="shop-layout">
+              {/* Sidebar Filters */}
+              <aside className="shop-sidebar animate-fade">
+                <div className="sidebar-title">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Filter size={18} />
+                    <span>Bộ Lọc Sản Phẩm</span>
+                  </div>
+                </div>
+
+                {/* Filter Category */}
+                <div className="filter-group">
+                  <h4>Danh Mục</h4>
+                  <div className="filter-options">
+                    {[
+                      { name: "Tất cả đồ", val: "" },
+                      { name: "Áo thời trang", val: "ao" },
+                      { name: "Quần thời trang", val: "quan" },
+                      { name: "Váy xinh xắn", val: "vay" },
+                      { name: "Phụ kiện độc đáo", val: "phukien" }
+                    ].map((c) => (
+                      <label key={c.name} className="filter-checkbox-label">
+                        <input
+                          type="radio"
+                          name="category"
+                          checked={filterCategory === c.val}
+                          onChange={() => setFilterCategory(c.val)}
+                        />
+                        <span>{c.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Filter Size */}
+                <div className="filter-group">
+                  <h4>Kích Thước (Size)</h4>
+                  <div className="size-filter-grid">
+                    {["S", "M", "L", "XL"].map((sz) => (
+                      <button
+                        key={sz}
+                        className={`size-box-btn ${filterSize === sz ? 'active' : ''}`}
+                        onClick={() => setFilterSize(filterSize === sz ? '' : sz)}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Filter Color */}
+                <div className="filter-group">
+                  <h4>Bảng Màu Sắc</h4>
+                  <div className="color-filter-flex">
+                    {[
+                      { name: 'Đen', hex: '#1A1A1A' },
+                      { name: 'Trắng', hex: '#FFFFFF' },
+                      { name: 'Xám', hex: '#8E8E93' },
+                      { name: 'Xanh Navy', hex: '#1D2D44' },
+                      { name: 'Hoa Vàng', hex: '#FFD166' },
+                      { name: 'Be Mộc', hex: '#EBE3D5' }
+                    ].map((col) => (
+                      <button
+                        key={col.name}
+                        className={`color-dot-btn ${filterColor === col.name ? 'active' : ''}`}
+                        style={{ backgroundColor: col.hex }}
+                        onClick={() => setFilterColor(filterColor === col.name ? '' : col.name)}
+                        title={col.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Filter Price */}
+                <div className="filter-group">
+                  <h4>Lọc Theo Giá</h4>
+                  <div className="filter-options">
+                    {[
+                      { name: "Tất cả các giá", val: "" },
+                      { name: "Dưới 200.000 ₫", val: "0-200" },
+                      { name: "Từ 200k - 400k", val: "200-400" },
+                      { name: "Trên 400.000 ₫", val: "400+" }
+                    ].map((pr) => (
+                      <label key={pr.name} className="filter-checkbox-label">
+                        <input
+                          type="radio"
+                          name="price-range"
+                          checked={filterPriceRange === pr.val}
+                          onChange={() => setFilterPriceRange(pr.val)}
+                        />
+                        <span>{pr.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Clear filters button */}
+                <button
+                  className="btn-secondary-outline"
+                  onClick={handleClearAllFilters}
+                  style={{ width: '100%', fontSize: '13px', padding: '10px 0', border: '1px solid #ddd', color: 'var(--secondary)' }}
+                >
+                  <RefreshCw size={14} />
+                  <span>Xóa Tất Cả Bộ Lọc</span>
+                </button>
+              </aside>
+
+              {/* Shop Grid Area */}
+              <div className="shop-content-panel">
+
+                {/* Search query tag */}
+                {(filterCategory || filterSize || filterColor || filterPriceRange || searchQuery) && (
+                  <div className="shop-active-filters animate-fade">
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--secondary-muted)', display: 'flex', alignItems: 'center' }}>Bộ lọc đang bật:</span>
+                    {filterCategory && (
+                      <span className="active-filter-badge">
+                        Danh mục: {filterCategory === 'ao' ? 'Áo' : filterCategory === 'quan' ? 'Quần' : filterCategory === 'vay' ? 'Váy' : 'Phụ kiện'}
+                        <button onClick={() => setFilterCategory('')}><X size={12} /></button>
+                      </span>
+                    )}
+                    {filterSize && (
+                      <span className="active-filter-badge">
+                        Size: {filterSize}
+                        <button onClick={() => setFilterSize('')}><X size={12} /></button>
+                      </span>
+                    )}
+                    {filterColor && (
+                      <span className="active-filter-badge">
+                        Màu: {filterColor}
+                        <button onClick={() => setFilterColor('')}><X size={12} /></button>
+                      </span>
+                    )}
+                    {filterPriceRange && (
+                      <span className="active-filter-badge">
+                        Giá: {filterPriceRange === '0-200' ? 'Dưới 200k' : filterPriceRange === '200-400' ? '200k-400k' : 'Trên 400k'}
+                        <button onClick={() => setFilterPriceRange('')}><X size={12} /></button>
+                      </span>
+                    )}
+                    {searchQuery && (
+                      <span className="active-filter-badge">
+                        Từ khóa: "{searchQuery}"
+                        <button onClick={() => setSearchQuery('')}><X size={12} /></button>
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Lưới sản phẩm */}
+                {filteredProducts.length === 0 ? (
+                  <div className="no-products-found animate-fade">
+                    <h3>Không tìm thấy sản phẩm nào!</h3>
+                    <p style={{ color: 'var(--secondary-muted)', marginBottom: '20px' }}>Bạn hãy thử đổi bộ lọc hoặc nhập từ khóa tìm kiếm khác nhé.</p>
+                    <button className="btn-go-shop" onClick={handleClearAllFilters}>
+                      Xem Tất Cả Sản Phẩm
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--secondary-muted)', fontWeight: 500 }}>
+                      Tìm thấy <strong>{filteredProducts.length}</strong> sản phẩm thiết kế Jusstlife
+                    </div>
+                    <div className="products-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                      {filteredProducts.map((prod) => (
+                        <ProductCard
+                          key={prod.id}
+                          product={prod}
+                          onSelectProduct={setSelectedProduct}
+                          onAddToCart={handleAddToCart}
+                          showAlert={showAlert}
+                          isWishlisted={wishlist.some(p => p.id === prod.id)}
+                          onToggleWishlist={handleToggleWishlist}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+>>>>>>> origin/main
         )}
 
         {/* =========================================================================
@@ -1436,6 +1947,7 @@ export default function App() {
            PORTAL: KHÁCH HÀNG - THANH TOÁN (CHECKOUT)
            ========================================================================= */}
         {!isAdminMode && currentPage === 'checkout' && (
+<<<<<<< HEAD
           <CheckoutPage
             cart={cart}
             cartTotalPrice={cartTotalPrice}
@@ -1446,6 +1958,179 @@ export default function App() {
             onPlaceOrder={handlePlaceOrder}
             currentUser={currentUser}
           />
+=======
+          <div className="container" style={{ marginTop: '40px' }}>
+            <h2 style={{ fontSize: '26px', fontWeight: 800, marginBottom: '24px' }}>Thông Tin Thanh Toán</h2>
+
+            <div className="checkout-layout animate-fade">
+              {/* Form Input Billing Info */}
+              <div className="checkout-form-card">
+                <h3 className="form-title">
+                  <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justify: 'center', fontSize: '14px' }}>1</span>
+                  <span>Thông tin nhận hàng</span>
+                </h3>
+
+                <form onSubmit={handlePlaceOrderSubmit}>
+                  <div className="form-grid">
+                    <div className="admin-form-group">
+                      <label className="input-label">Họ và tên người nhận *</label>
+                      <input
+                        type="text"
+                        placeholder="Ví dụ: Nguyễn Văn A..."
+                        className="checkout-input"
+                        value={checkoutName}
+                        onChange={(e) => setCheckoutName(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="admin-form-group">
+                      <label className="input-label">Số điện thoại liên lạc *</label>
+                      <input
+                        type="tel"
+                        placeholder="Ví dụ: 0987654321..."
+                        className="checkout-input"
+                        value={checkoutPhone}
+                        onChange={(e) => setCheckoutPhone(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="admin-form-group full-width">
+                      <label className="input-label">Địa chỉ nhận hàng chi tiết *</label>
+                      <input
+                        type="text"
+                        placeholder="Ví dụ: Số 123 Đường Nguyễn Huệ, Quận 1, TP.HCM..."
+                        className="checkout-input"
+                        value={checkoutAddress}
+                        onChange={(e) => setCheckoutAddress(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="admin-form-group full-width">
+                      <label className="input-label">Ghi chú giao hàng (Nếu có)</label>
+                      <input
+                        type="text"
+                        placeholder="Ví dụ: Giao hàng giờ hành chính / gọi trước khi giao..."
+                        className="checkout-input"
+                        value={checkoutNote}
+                        onChange={(e) => setCheckoutNote(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Payment method selector */}
+                  <h3 className="form-title" style={{ marginTop: '30px' }}>
+                    <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justify: 'center', fontSize: '14px' }}>2</span>
+                    <span>Phương thức thanh toán</span>
+                  </h3>
+
+                  <div className="payment-options-group">
+                    <div
+                      className={`payment-option-card ${paymentMethod === 'COD' ? 'active' : ''}`}
+                      onClick={() => setPaymentMethod('COD')}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        className="payment-radio"
+                        checked={paymentMethod === 'COD'}
+                        onChange={() => setPaymentMethod('COD')}
+                      />
+                      <div className="payment-info">
+                        <span className="payment-name">COD - Thanh toán khi nhận hàng</span>
+                        <span className="payment-desc">Bạn sẽ thanh toán bằng tiền mặt cho shipper khi nhận gói hàng thành công.</span>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`payment-option-card ${paymentMethod === 'Transfer' ? 'active' : ''}`}
+                      onClick={() => setPaymentMethod('Transfer')}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        className="payment-radio"
+                        checked={paymentMethod === 'Transfer'}
+                        onChange={() => setPaymentMethod('Transfer')}
+                      />
+                      <div className="payment-info">
+                        <span className="payment-name">Chuyển khoản Ngân hàng (Hỗ trợ quét QR nhanh)</span>
+                        <span className="payment-desc">Quét mã QR chuyển khoản giả lập để hoàn tất thanh toán tức thì.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BANK TRANSFER DETAILS BOX */}
+                  {paymentMethod === 'Transfer' && (
+                    <div className="bank-transfer-details">
+                      <img
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=JUSSTLIFE_PAYMENT"
+                        alt="QR Code"
+                        className="qr-code-img"
+                      />
+                      <div className="bank-info-lines">
+                        <div style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>THÔNG TIN CHUYỂN KHOẢN :</div>
+                        <div>Ngân hàng: <strong>MB BANK (Quân Đội)</strong></div>
+                        <div>Số tài khoản: <strong>09876543210</strong></div>
+                        <div>Chủ tài khoản: <strong>CONG TY THOI TRANG JUSSTLIFE</strong></div>
+                        <div>Số tiền: <strong>{cartFinalPrice.toLocaleString('vi-VN')} ₫</strong></div>
+                        <div style={{ fontSize: '11px', color: '#c62828', marginTop: '4px' }}>Nội dung CK: <strong>JUSSTPAY</strong></div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="checkout-action-btn"
+                    style={{ marginTop: '30px', padding: '16px' }}
+                  >
+                    Xác Nhận Đặt Hàng ({cartFinalPrice.toLocaleString('vi-VN')} ₫)
+                  </button>
+                </form>
+              </div>
+
+              {/* Order checkout bill list preview */}
+              <div className="cart-summary-card">
+                <h3 className="summary-title">Đơn hàng của bạn</h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '300px', overflowY: 'auto', marginBottom: '20px', paddingRight: '6px' }}>
+                  {cart.map((item, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
+                      <img src={item.images[0]} alt="" style={{ width: '48px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                      <div style={{ flexGrow: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--secondary-muted)', marginTop: '2px' }}>
+                          Size: {item.selectedSize} / {item.selectedColor.name}
+                        </div>
+                        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--secondary-muted)', marginTop: '2px' }}>
+                          {item.quantity} x {item.price.toLocaleString('vi-VN')} ₫
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)' }}>
+                        {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="summary-row">
+                  <span>Tạm tính</span>
+                  <span>{cartTotalPrice.toLocaleString('vi-VN')} ₫</span>
+                </div>
+                <div className="summary-row">
+                  <span>Phí ship</span>
+                  <span>{shipFee === 0 ? "Miễn phí" : "30.000 ₫"}</span>
+                </div>
+                <div className="summary-row total-row">
+                  <span>Tổng tiền</span>
+                  <span className="total-price-text">{cartFinalPrice.toLocaleString('vi-VN')} ₫</span>
+                </div>
+              </div>
+            </div>
+          </div>
+>>>>>>> origin/main
         )}
 
         {/* =========================================================================

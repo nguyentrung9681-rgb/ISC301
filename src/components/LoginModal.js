@@ -15,7 +15,6 @@ export default function LoginModal({
     email: "",
     password: "",
   });
-
   const [registerData, setRegisterData] = useState({
     fullName: "",
     email: "",
@@ -85,7 +84,6 @@ export default function LoginModal({
     }
     await onRegister(registerData);
   };
-
   const handleResetSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -252,7 +250,6 @@ export default function LoginModal({
               </div>
 
               <div id="google-signin-btn" style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}></div>
-
               <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--secondary-muted)' }}>
                 Chưa có tài khoản?{" "}
                 <span
@@ -338,7 +335,6 @@ export default function LoginModal({
               </div>
 
               <div id="google-signin-btn" style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}></div>
-
               <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--secondary-muted)' }}>
                 Đã có tài khoản?{" "}
                 <span

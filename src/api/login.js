@@ -61,7 +61,6 @@ export const api = {
 
         return result;
     },
-
     async register(data) {
         const response = await fetch(
             `${API_URL}/register`,
