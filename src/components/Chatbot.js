@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Sparkles, Send, Bot, ShoppingBag, Info } from 'lucide-react';
+import { X, Sparkles, Send, Bot, ShoppingBag } from 'lucide-react';
 import { api } from '../api';
 import { normalizeProduct } from '../utils/normalizers';
 

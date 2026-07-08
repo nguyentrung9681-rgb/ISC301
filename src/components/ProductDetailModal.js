@@ -75,6 +75,7 @@ export default function ProductDetailModal({
     if (product && product.id) {
       api.trackFunnel('VIEW_PRODUCT', product.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product, allProducts, category, sizes, colors]);
 
   const handleSubmitReview = async (e) => {

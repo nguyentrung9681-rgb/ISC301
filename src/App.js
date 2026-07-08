@@ -57,10 +57,6 @@ export default function App() {
 
 
   // --- AUTHENTICATION MOCK ACCOUNTS ---
-  const DEMO_USERS = [
-    { email: 'manager@jusstlife.com', password: 'manager123', role: 'manager', name: 'Nguyễn Quản Lý', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' },
-    { email: 'customer@jusstlife.com', password: 'customer123', role: 'customer', name: 'Lê Khách Hàng', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }
-  ];
 
   const [currentUser, setCurrentUser] = useState(() => {
     const local = localStorage.getItem('jusst_user');
@@ -291,6 +287,7 @@ export default function App() {
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showSuccessPopup, lastOrderId, lastOrderPaymentMethod, paymentStatus, currentUser]);
 
   // LOGIN, REGISTER & LOGOUT HANDLERS
