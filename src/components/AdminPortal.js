@@ -1360,11 +1360,25 @@ export default function AdminPortal({
               <div className="admin-form-section-title">3. Hình ảnh & Mô tả chi tiết</div>
               <div className="admin-form-grid" style={{ marginBottom: '20px' }}>
                 <div className="admin-form-group full-width">
-                  <label className="input-label">Ảnh sản phẩm từ máy *</label>
+                  <label className="input-label">Ảnh sản phẩm từ máy</label>
                   <input type="file" accept="image/*" className="admin-input" onChange={handleImageFileChange} />
                   <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--secondary-muted)' }}>
                     {isUploadingImage ? 'Đang tải ảnh lên...' : prodImageUrl ? 'Ảnh đã sẵn sàng để lưu sản phẩm.' : 'Chọn ảnh trực tiếp từ máy tính.'}
                   </div>
+                </div>
+
+                <div className="admin-form-group full-width">
+                  <label className="input-label">Hoặc nhập URL ảnh trực tuyến (Khuyên dùng để lưu trữ lâu dài)</label>
+                  <input 
+                    type="text" 
+                    placeholder="https://images.unsplash.com/... hoặc link ảnh bất kỳ" 
+                    className="admin-input" 
+                    value={prodImageUrl} 
+                    onChange={(e) => {
+                      setProdImageUrl(e.target.value);
+                      setProdImagePreview(e.target.value);
+                    }} 
+                  />
                   {prodImagePreview && (
                     <div style={{ marginTop: '12px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-light)', display: 'inline-block' }}>
                       <img src={prodImagePreview} alt="Preview" style={{ width: '120px', height: '120px', objectFit: 'cover', display: 'block' }} />
