@@ -594,9 +594,6 @@ export default function App() {
         order = await api.checkout(address.trim(), phone.trim(), pm);
       }
 
-      setCart([]);
-      api.trackFunnel('PURCHASE');
-
       setLastOrderId(order.id);
       setPaymentStatus('PENDING');
 
@@ -614,6 +611,9 @@ export default function App() {
         setPayosCheckoutUrl('');
         setPayosQrCode('');
       }
+
+      setCart([]);
+      api.trackFunnel('PURCHASE');
 
       setAppliedVoucher(null);
       localStorage.removeItem('jusst_applied_voucher_code');

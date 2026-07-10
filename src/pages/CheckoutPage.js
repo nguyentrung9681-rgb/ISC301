@@ -30,9 +30,19 @@ export default function CheckoutPage({
     }
   }, [currentUser]);
 
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onPlaceOrder({ name, phone, address, note, paymentMethod });
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onPlaceOrder({ name, phone, address, note, paymentMethod });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -162,9 +172,10 @@ export default function CheckoutPage({
             <button
               type="submit"
               className="checkout-action-btn"
-              style={{ marginTop: '30px', padding: '16px' }}
+              style={{ marginTop: '30px', padding: '16px', opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
+              disabled={isSubmitting}
             >
-              Xác Nhận Đặt Hàng ({cartFinalPrice.toLocaleString('vi-VN')} ₫)
+              {isSubmitting ? 'Đang xử lý đặt hàng...' : `Xác Nhận Đặt Hàng (${cartFinalPrice.toLocaleString('vi-VN')} ₫)`}
             </button>
           </form>
         </div>
