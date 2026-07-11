@@ -88,7 +88,6 @@ export default function App() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [lastOrderId, setLastOrderId] = useState('');
   const [payosCheckoutUrl, setPayosCheckoutUrl] = useState('');
-  const [payosQrCode, setPayosQrCode] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('PENDING'); // PENDING or PAID
 
   // Voucher states
@@ -602,18 +601,15 @@ export default function App() {
           const paymentData = await api.generatePayOSLink(order.id);
           const checkoutUrl = paymentData?.checkoutUrl || paymentData || '';
           setPayosCheckoutUrl(checkoutUrl);
-          setPayosQrCode(paymentData?.qrCode || '');
           if (checkoutUrl) {
             window.open(checkoutUrl, '_blank');
           }
         } catch (payosError) {
           console.error("Lỗi tạo link PayOS:", payosError);
           setPayosCheckoutUrl('');
-          setPayosQrCode('');
         }
       } else {
         setPayosCheckoutUrl('');
-        setPayosQrCode('');
       }
 
       setCart([]);
