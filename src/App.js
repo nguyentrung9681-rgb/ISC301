@@ -600,8 +600,12 @@ export default function App() {
       if (!isCod) {
         try {
           const paymentData = await api.generatePayOSLink(order.id);
-          setPayosCheckoutUrl(paymentData?.checkoutUrl || paymentData || '');
+          const checkoutUrl = paymentData?.checkoutUrl || paymentData || '';
+          setPayosCheckoutUrl(checkoutUrl);
           setPayosQrCode(paymentData?.qrCode || '');
+          if (checkoutUrl) {
+            window.open(checkoutUrl, '_blank');
+          }
         } catch (payosError) {
           console.error("Lỗi tạo link PayOS:", payosError);
           setPayosCheckoutUrl('');

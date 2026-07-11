@@ -151,21 +151,13 @@ export default function CheckoutPage({
 
             {/* BANK TRANSFER DETAILS BOX */}
             {paymentMethod === 'Transfer' && (
-              <div className="bank-transfer-details">
-                <img
-                  src={`https://img.vietqr.io/image/MB-09876543210-compact.jpg?amount=${cartFinalPrice}&addInfo=JUSSTPAY&accountName=CONG%20TY%20THOI%20TRANG%20JUSSTLIFE`}
-                  alt="QR Code"
-                  className="qr-code-img"
-                  style={{ width: '150px', height: '150px', objectFit: 'contain' }}
-                />
-                <div className="bank-info-lines">
-                  <div style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>THÔNG TIN CHUYỂN KHOẢN :</div>
-                  <div>Ngân hàng: <strong>MB BANK (Quân Đội)</strong></div>
-                  <div>Số tài khoản: <strong>09876543210</strong></div>
-                  <div>Chủ tài khoản: <strong>CONG TY THOI TRANG JUSSTLIFE</strong></div>
-                  <div>Số tiền: <strong>{cartFinalPrice.toLocaleString('vi-VN')} ₫</strong></div>
-                  <div style={{ fontSize: '11px', color: '#c62828', marginTop: '4px' }}>Nội dung CK: <strong>JUSSTPAY</strong></div>
+              <div className="bank-transfer-details" style={{ flexDirection: 'column', background: 'var(--primary-light)', borderColor: '#ffccbc', padding: '20px', gap: '8px' }}>
+                <div style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '14px' }}>
+                  Thanh toán qua cổng PayOS (Hỗ trợ VietQR nhanh)
                 </div>
+                <p style={{ fontSize: '12px', color: 'var(--secondary-muted)', margin: 0, lineHeight: '1.6' }}>
+                  Sau khi xác nhận đặt hàng, hệ thống sẽ tự động mở trang thanh toán an toàn của <strong>PayOS</strong> để bạn quét mã VietQR chuyển khoản nhanh bằng ứng dụng ngân hàng. Trạng thái thanh toán của bạn sẽ được đồng bộ tự động.
+                </p>
               </div>
             )}
 

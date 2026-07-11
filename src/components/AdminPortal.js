@@ -304,6 +304,12 @@ export default function AdminPortal({
   };
 
   useEffect(() => {
+    const managerMenus = ['analytics', 'categories', 'vouchers', 'users-management'];
+    if (currentRole === 'staff' && managerMenus.includes(activeMenu)) {
+      setActiveMenu('products-list');
+      return;
+    }
+
     if (activeMenu === 'analytics' && currentRole === 'manager') {
       loadStats();
     } else if (activeMenu === 'vouchers' && currentRole === 'manager') {
@@ -709,7 +715,7 @@ export default function AdminPortal({
         {/* =========================================================================
            TAB: ANALYTICS (MANAGER ONLY)
            ========================================================================= */}
-        {activeMenu === 'analytics' && (
+        {activeMenu === 'analytics' && currentRole === 'manager' && (
           <div>
             <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '24px' }}>Báo Cáo Doanh Thu & Hệ Thống</h2>
 
@@ -1098,9 +1104,11 @@ export default function AdminPortal({
                           <button onClick={() => openEditForm(prod)} style={{ color: 'var(--primary)', cursor: 'pointer', background: 'transparent', border: 'none', padding: '4px' }} title="Sửa Sản Phẩm">
                             <Edit size={16} />
                           </button>
-                          <button onClick={() => onDeleteProduct(prod.id)} style={{ color: '#c62828', cursor: 'pointer', background: 'transparent', border: 'none', padding: '4px' }} title="Xóa Sản Phẩm">
-                            <Trash2 size={16} />
-                          </button>
+                          {currentRole === 'manager' && (
+                            <button onClick={() => onDeleteProduct(prod.id)} style={{ color: '#c62828', cursor: 'pointer', background: 'transparent', border: 'none', padding: '4px' }} title="Xóa Sản Phẩm">
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1112,7 +1120,7 @@ export default function AdminPortal({
           </div>
         )}
 
-        {activeMenu === 'categories' && (
+        {activeMenu === 'categories' && currentRole === 'manager' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
@@ -1518,7 +1526,7 @@ export default function AdminPortal({
           </div>
         )}
 
-        {activeMenu === 'vouchers' && (
+        {activeMenu === 'vouchers' && currentRole === 'manager' && (
           <div>
             <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '6px' }}>Quản Lý Mã Giảm Giá (Vouchers)</h2>
             <p style={{ fontSize: '13px', color: 'var(--secondary-muted)', marginBottom: '24px' }}>

@@ -130,6 +130,10 @@ export default function LoginModal({
           transition: all 0.3s ease;
           box-sizing: border-box;
         }
+        .modal-input-premium::placeholder {
+          color: #a0aec0;
+          opacity: 1;
+        }
         .modal-input-premium:focus {
           background: white;
           border-color: var(--primary);
@@ -180,7 +184,7 @@ export default function LoginModal({
         }
       `}</style>
       
-      <div className="login-modal animate-pop" style={{ padding: 0, width: '440px', overflow: 'hidden', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.08)' }}>
+      <div className="login-modal animate-pop" style={{ padding: 0, width: '440px', overflow: 'hidden', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.08)', backgroundColor: '#ffffff' }}>
         
         {/* Banner */}
         <div style={{ background: 'var(--primary-gradient)', padding: '30px 40px', position: 'relative', color: 'white', textAlign: 'center' }}>
