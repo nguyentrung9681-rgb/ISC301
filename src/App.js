@@ -624,15 +624,24 @@ export default function App() {
       setVoucherCodeInput('');
       setShowSuccessPopup(true);
 
-      // Refresh orders
+      // Refresh orders in background
       if (currentUser) {
-        const ordersRes = (currentUser.role === 'manager' || currentUser.role === 'staff') ? await api.getAdminOrders().catch(() => []) : await api.getOrderHistory().catch(() => []);
-        setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
+        const fetchOrders = (currentUser.role === 'manager' || currentUser.role === 'staff')
+          ? api.getAdminOrders()
+          : api.getOrderHistory();
+        fetchOrders
+          .then((ordersRes) => {
+            setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
+          })
+          .catch((e) => console.error("Error refreshing orders in background:", e));
       }
 
-      // Refresh products (inventory updated)
-      const productsRes = await api.getProducts().catch(() => []);
-      setProducts((Array.isArray(productsRes) ? productsRes : []).map(normalizeProduct));
+      // Refresh products (inventory updated) in background
+      api.getProducts()
+        .then((productsRes) => {
+          setProducts((Array.isArray(productsRes) ? productsRes : []).map(normalizeProduct));
+        })
+        .catch((e) => console.error("Error refreshing products in background:", e));
     } catch (err) {
       showAlert('LỖI ĐẶT HÀNG', err.message || 'Lỗi đặt hàng', 'error');
     }
