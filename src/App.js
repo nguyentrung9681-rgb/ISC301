@@ -2044,17 +2044,33 @@ export default function App() {
                 </div>
                 <h2>ĐANG CHỜ THANH TOÁN</h2>
                 <p style={{ margin: '10px 0 15px', lineHeight: '1.6', fontSize: '14px' }}>
-                  Đơn hàng <strong style={{ color: 'var(--primary)' }}>#{lastOrderId}</strong> đã được khởi tạo. Vui lòng quét mã QR dưới đây bằng ứng dụng Ngân hàng để thanh toán:
+                  Đơn hàng <strong style={{ color: 'var(--primary)' }}>#{lastOrderId}</strong> đã được khởi tạo. Vui lòng nhấn vào nút bên dưới để thanh toán qua cổng bảo mật PayOS:
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', background: '#f9f9f9', padding: '15px', borderRadius: '8px', border: '1px solid #eee' }}>
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(payosQrCode || payosCheckoutUrl)}`}
-                    alt="PayOS QR Napas"
-                    style={{ border: '1px solid #ddd', padding: '8px', background: 'white', borderRadius: '4px' }}
-                  />
-                  <a href={payosCheckoutUrl} target="_blank" rel="noreferrer" style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>
-                    Nhấp vào đây để thanh toán trực tiếp trên website PayOS
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', background: '#f9f9f9', padding: '20px', borderRadius: '12px', border: '1px solid #eee', width: '100%' }}>
+                  <a 
+                    href={payosCheckoutUrl} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    style={{ 
+                      fontSize: '14px', 
+                      fontWeight: 700, 
+                      padding: '12px 24px', 
+                      borderRadius: '8px', 
+                      background: 'var(--primary-gradient)', 
+                      color: 'white', 
+                      display: 'inline-block',
+                      width: '100%',
+                      textAlign: 'center',
+                      boxShadow: '0 4px 10px rgba(255,87,34,0.2)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Thanh Toán Ngay qua PayOS
                   </a>
+                  <span style={{ fontSize: '12px', color: 'var(--secondary-muted)' }}>
+                    (Hỗ trợ quét mã VietQR, thẻ ATM nội địa, Visa/Mastercard)
+                  </span>
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--secondary-muted)', marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                   <RefreshCw className="animate-spin" size={12} />
