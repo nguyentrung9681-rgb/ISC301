@@ -765,26 +765,40 @@ export default function App() {
           : `Bạn có chắc chắn muốn hủy đơn hàng #${id}?`,
         'delete',
         async () => {
+          // Optimistically update status locally
+          setOrders(prevOrders => prevOrders.map(o => o.id === id ? { ...o, status: 'Hủy đơn' } : o));
           try {
             await api.adminCancelOrder(id);
-            const ordersRes = await api.getAdminOrders().catch(() => []);
-            setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
             addToast(`Đã hủy đơn hàng #${id} thành công!`, 'info');
+            // Fetch in background to sync
+            api.getAdminOrders()
+              .then(ordersRes => setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder)))
+              .catch(console.error);
           } catch (err) {
             addToast(err.message || 'Lỗi hủy đơn hàng', 'error');
+            // Rollback on error
+            const ordersRes = await api.getAdminOrders().catch(() => []);
+            setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
           }
         }
       );
       return;
     }
 
+    // Optimistically update status locally
+    setOrders(prevOrders => prevOrders.map(o => o.id === id ? { ...o, status: newStatus } : o));
     try {
       await api.updateOrderStatus(id, newStatus);
-      const ordersRes = await api.getAdminOrders().catch(() => []);
-      setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
       addToast(`Đã chuyển đơn #${id} sang trạng thái "${newStatus}"!`, 'success');
+      // Fetch in background to sync
+      api.getAdminOrders()
+        .then(ordersRes => setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder)))
+        .catch(console.error);
     } catch (err) {
       addToast(err.message || 'Lỗi cập nhật trạng thái đơn hàng', 'error');
+      // Rollback on error
+      const ordersRes = await api.getAdminOrders().catch(() => []);
+      setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
     }
   };
 

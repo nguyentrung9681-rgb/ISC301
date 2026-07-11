@@ -87,7 +87,7 @@ export default function Navbar({
           </div>
         ) : (
           <div style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--secondary-muted)', fontWeight: 500 }}>
-            Hệ thống quản trị sản phẩm Jusstlife
+            {currentUser?.role === 'staff' ? 'Cổng staff' : 'Cổng manager'}
           </div>
         )}
 
