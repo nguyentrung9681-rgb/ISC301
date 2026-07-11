@@ -289,6 +289,29 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showSuccessPopup, lastOrderId, lastOrderPaymentMethod, paymentStatus, currentUser]);
 
+  // Clean up PayOS redirect URL parameters (code, id, cancel, status, orderCode)
+  useEffect(() => {
+    const path = window.location.pathname;
+    const search = window.location.search;
+    if (path.includes('/payment/success') || path.includes('/payment/cancel') || search.includes('orderCode=')) {
+      const params = new URLSearchParams(search);
+      const isSuccess = path.includes('/payment/success') || params.get('status') === 'PAID' || params.get('cancel') === 'false';
+      const isCancel = path.includes('/payment/cancel') || params.get('status') === 'CANCELLED' || params.get('cancel') === 'true';
+
+      if (isSuccess) {
+        addToast('Thanh toán đơn hàng thành công qua cổng PayOS!', 'success');
+        setCurrentPage('profile'); // Chuyển đến trang cá nhân để xem lịch sử mua hàng
+      } else if (isCancel) {
+        addToast('Giao dịch thanh toán đã bị hủy hoặc không thành công.', 'warning');
+        setCurrentPage('home');
+      }
+
+      // Ngay lập tức xóa các tham số URL và đưa đường dẫn về trang chủ '/' để ẩn toàn bộ thông tin nhạy cảm
+      window.history.replaceState(null, '', '/');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // LOGIN, REGISTER & LOGOUT HANDLERS
 
   const handleLogin = async (email, password) => {
