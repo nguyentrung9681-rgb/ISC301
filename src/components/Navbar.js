@@ -177,7 +177,7 @@ export default function Navbar({
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
-                  {currentUser.role === 'manager' ? 'Quản Lý' : 'Khách Hàng'}
+                  {currentUser.role === 'manager' ? 'Quản Lý' : currentUser.role === 'staff' ? 'Nhân Viên' : 'Khách Hàng'}
                 </span>
               </div>
 
@@ -194,7 +194,7 @@ export default function Navbar({
                   style={{ padding: '8px 16px', fontSize: '13px' }}
                 >
                   <ShieldCheck size={15} />
-                  <span>{isAdminMode ? "Mua Sắm" : "Cổng Admin"}</span>
+                  <span>{isAdminMode ? "Mua Sắm" : (currentUser.role === 'staff' ? "Cổng Staff" : "Cổng Manager")}</span>
                 </button>
               )}
 
