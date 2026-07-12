@@ -343,21 +343,16 @@ export default function App() {
     }
   };
   const handleLogout = async () => {
+    // Optimistically log out immediately
+    localStorage.removeItem('jusst_user');
+    setCurrentUser(null);
+    addToast("Đăng xuất thành công", "success");
+
+    // Call server logout in the background
     try {
-
       await api.logout();
-      localStorage.removeItem('jusst_user');
-      setCurrentUser(null);
-      addToast(
-        "Đăng xuất thành công",
-        "success"
-      );
-
     } catch (err) {
-      addToast(
-        err.message,
-        "error"
-      );
+      console.error("Lỗi đăng xuất phía server:", err);
     }
   };
 
@@ -470,7 +465,7 @@ export default function App() {
       const size = cartItem.selectedSize || 'M';
       const colorName = cartItem.selectedColor?.name || cartItem.selectedColor || 'Mặc định';
       await api.addToCart(cartItem.id, cartItem.quantity, size, colorName);
-      await fetchAndSetCart();
+      fetchAndSetCart(); // sync in background
       addToast(`Đã thêm ${cartItem.quantity} sản phẩm "${cartItem.name}" vào giỏ hàng!`, 'success');
     } catch (err) {
       addToast(err.message || 'Lỗi khi thêm vào giỏ hàng', 'error');
@@ -505,10 +500,15 @@ export default function App() {
       return;
     }
 
+    // Optimistically update quantity locally
+    const previousCart = cart;
+    setCart(cart.map((c, i) => i === idx ? { ...c, quantity: newQty } : c));
+
     try {
       await api.updateCartQty(item.cartItemId || item.id, newQty);
-      await fetchAndSetCart();
+      fetchAndSetCart(); // run in background
     } catch (err) {
+      setCart(previousCart);
       addToast(err.message || 'Lỗi cập nhật số lượng', 'error');
     }
   };
@@ -520,11 +520,16 @@ export default function App() {
       `Bạn có chắc chắn muốn xóa sản phẩm "${item.name}" khỏi giỏ hàng?`,
       'delete',
       async () => {
+        const previousCart = cart;
+        // Optimistically remove item from cart state
+        setCart(cart.filter((c, i) => i !== idx));
+        addToast(`Đã xóa sản phẩm khỏi giỏ hàng`, 'info');
+
         try {
           await api.removeFromCart(item.cartItemId || item.id);
-          await fetchAndSetCart();
-          addToast(`Đã xóa sản phẩm khỏi giỏ hàng`, 'info');
+          fetchAndSetCart(); // sync in background
         } catch (err) {
+          setCart(previousCart);
           addToast(err.message || 'Lỗi xóa sản phẩm', 'error');
         }
       }
@@ -582,7 +587,7 @@ export default function App() {
           const checkoutUrl = paymentData?.checkoutUrl || paymentData || '';
           setPayosCheckoutUrl(checkoutUrl);
           if (checkoutUrl) {
-            window.open(checkoutUrl, '_blank');
+            window.location.href = checkoutUrl;
           }
         } catch (payosError) {
           console.error("Lỗi tạo link PayOS:", payosError);
@@ -2075,15 +2080,13 @@ export default function App() {
       )}
 
       {/* C. LOGIN MODAL POPUP */}
-      {showLoginModal && (
-        <LoginModal
-          isOpen={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
-          onLogin={handleLogin}
-          onRegister={handleRegister}
-          onGoogleLogin={handleGoogleLogin}
-        />
-      )}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onGoogleLogin={handleGoogleLogin}
+      />
 
 
       {/* E. SLIDE-OVER WISHLIST DRAWER POPUP */}

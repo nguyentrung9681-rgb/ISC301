@@ -35,6 +35,11 @@ export default function LoginModal({
       setScriptLoaded(true);
       return;
     }
+    const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existingScript) {
+      setScriptLoaded(true);
+      return;
+    }
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;

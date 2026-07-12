@@ -852,7 +852,7 @@ export default function ProfilePage({
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 if (payment.checkoutUrl) {
-                                                  window.open(payment.checkoutUrl, '_blank', 'noopener,noreferrer');
+                                                  window.location.href = payment.checkoutUrl;
                                                 } else {
                                                   onGeneratePayOSLink(order.id);
                                                 }
