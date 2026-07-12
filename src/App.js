@@ -68,6 +68,7 @@ export default function App() {
 
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [trackingOrderId, setTrackingOrderId] = useState('');
+  const [trackingTab, setTrackingTab] = useState('search');
 
   // --- NAVIGATION & PORTAL STATES ---
   const [currentPage, setCurrentPage] = useState('home'); // home, shop, about, cart, checkout, admin
@@ -346,6 +347,8 @@ export default function App() {
     // Optimistically log out immediately
     localStorage.removeItem('jusst_user');
     setCurrentUser(null);
+    setTrackingOrderId('');
+    setTrackingTab('search');
     addToast("Đăng xuất thành công", "success");
 
     // Call server logout in the background
@@ -1577,10 +1580,53 @@ export default function App() {
                 <span>Theo Dõi Hành Trình Đơn Hàng</span>
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--secondary-muted)', marginBottom: '30px' }}>
-                Nhập Mã Đơn Hàng Jusstlife để tra cứu trực tiếp hành trình xử lý, đóng gói và vận chuyển kiện hàng của bạn.
+                Tra cứu trực tiếp hành trình xử lý, đóng gói và vận chuyển kiện hàng của bạn hoặc xem lại danh sách đơn hàng đã mua.
               </p>
 
-              {/* SEARCH INPUT BAR */}
+              {/* Sub-tabs for Tracking Page */}
+              <div style={{ display: 'flex', gap: '14px', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px', marginBottom: '24px' }}>
+                <button
+                  onClick={() => setTrackingTab('search')}
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    padding: '8px 16px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: trackingTab === 'search' ? 'var(--primary-light)' : 'transparent',
+                    color: trackingTab === 'search' ? 'var(--primary)' : 'var(--secondary-muted)',
+                    cursor: 'pointer',
+                    transition: 'var(--transition)'
+                  }}
+                >
+                  🔍 Tra cứu mã đơn hàng
+                </button>
+                <button
+                  onClick={() => {
+                    if (!currentUser) {
+                      setShowLoginModal(true);
+                      addToast("Vui lòng đăng nhập để xem danh sách đơn hàng!", "warning");
+                      return;
+                    }
+                    setTrackingTab('history');
+                  }}
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    padding: '8px 16px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: trackingTab === 'history' ? 'var(--primary-light)' : 'transparent',
+                    color: trackingTab === 'history' ? 'var(--primary)' : 'var(--secondary-muted)',
+                    cursor: 'pointer',
+                    transition: 'var(--transition)'
+                  }}
+                >
+                  📦 Đơn hàng của tôi ({currentUser ? orders.length : 0})
+                </button>
+              </div>
+
+              {trackingTab === 'search' && (
+                <div className="animate-fade">
+                  {/* SEARCH INPUT BAR */}
               <div style={{ display: 'flex', gap: '12px', maxWidth: '560px', marginBottom: '30px' }}>
                 <input
                   type="text"
@@ -1862,6 +1908,83 @@ export default function App() {
                   </div>
                 );
               })()}
+                </div>
+              )}
+
+              {/* LỊCH SỬ ĐƠN HÀNG TAB */}
+              {trackingTab === 'history' && (
+                <div className="animate-fade">
+                  {orders.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--secondary-muted)' }}>
+                      <p>Bạn chưa có đơn hàng nào tại Jusstlife.</p>
+                      <button className="btn-primary-filled" onClick={() => setCurrentPage('shop')} style={{ marginTop: '16px', padding: '8px 20px' }}>
+                        Mua sắm ngay
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                      {orders.map((ord) => {
+                        const date = new Date(ord.createdAt || ord.orderDate);
+                        const formattedDate = isNaN(date.getTime()) ? 'Không rõ' : `${date.toLocaleDateString('vi-VN')} ${date.toLocaleTimeString('vi-VN')}`;
+                        const s = ord.status;
+                        const statusColor = s === 'Đã giao' ? '#2e7d32' : s === 'Đang giao' ? '#ff9800' : s === 'Hủy đơn' ? '#c62828' : '#7c3aed';
+                        const statusBg = s === 'Đã giao' ? '#e8f5e9' : s === 'Đang giao' ? '#fff3e0' : s === 'Hủy đơn' ? '#ffebee' : '#f3e5f5';
+
+                        return (
+                          <div key={ord.id} style={{ background: '#fdfdfd', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', transition: 'var(--transition)', boxShadow: 'var(--shadow-sm)' }} className="service-card">
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                <span style={{ fontWeight: 800, fontSize: '15px', color: 'var(--secondary)' }}>Mã đơn: #{ord.id}</span>
+                                <span style={{
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  padding: '3px 8px',
+                                  borderRadius: '4px',
+                                  background: statusBg,
+                                  color: statusColor,
+                                  textTransform: 'uppercase'
+                                }}>
+                                  {s}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '12.5px', color: 'var(--secondary-muted)', display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+                                <div>📅 Ngày đặt: <strong>{formattedDate}</strong></div>
+                                <div>👤 Người nhận: <strong>{ord.customerName}</strong></div>
+                                <div>📞 Số điện thoại: <strong>{ord.phone || 'Chưa cung cấp'}</strong></div>
+                                <div>💰 Tổng tiền: <strong style={{ color: 'var(--primary)' }}>{ord.totalPrice.toLocaleString('vi-VN') + '\u00a0₫'}</strong></div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setTrackingOrderId(String(ord.id));
+                                setTrackingTab('search');
+                              }}
+                              className="btn-primary-filled"
+                              style={{
+                                width: '100%',
+                                padding: '10px',
+                                fontSize: '13px',
+                                fontWeight: 700,
+                                borderRadius: 'var(--radius-sm)',
+                                background: 'var(--primary-gradient)',
+                                color: 'white',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px'
+                              }}
+                            >
+                              <span>Theo Dõi Hành Trình</span>
+                              <ArrowRight size={14} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
 
             </div>
           </div>
