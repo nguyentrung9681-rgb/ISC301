@@ -424,6 +424,15 @@ export default function App() {
     }
   };
 
+  const handleTrackingInputChange = (val) => {
+    if (!currentUser) {
+      setShowLoginModal(true);
+      addToast("Vui lòng đăng nhập để tra cứu hành trình đơn hàng!", "warning");
+      return;
+    }
+    setTrackingOrderId(String(val || '').toUpperCase().trim());
+  };
+
   // --- PROFILE UPDATE HANDLER ---
   const handleUpdateProfile = async (updatedUser) => {
     try {
@@ -1578,7 +1587,7 @@ export default function App() {
                   placeholder="Nhập mã đơn hàng của bạn (Ví dụ: JUSST123456)..."
                   className="checkout-input"
                   value={String(trackingOrderId || '')}
-                  onChange={(e) => setTrackingOrderId(String(e.target.value || '').toUpperCase().trim())}
+                  onChange={(e) => handleTrackingInputChange(e.target.value)}
                   style={{ textTransform: 'uppercase' }}
                 />
               </div>
