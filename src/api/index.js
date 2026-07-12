@@ -353,10 +353,22 @@ export const api = {
       body: JSON.stringify({ status }),
     }),
 
+  updateUserRole: (id, role) =>
+    apiFetch(`/api/manager/users/${id}/role`, {
+      method: "PATCH",
+      body: JSON.stringify({ role }),
+    }),
+
   createStaff: (staffData) =>
     apiFetch("/api/manager/users/create-staff", {
       method: "POST",
       body: JSON.stringify(staffData),
+    }),
+
+  createManager: (managerData) =>
+    apiFetch("/api/manager/users/create-manager", {
+      method: "POST",
+      body: JSON.stringify(managerData),
     }),
 
   trackFunnel: (eventType, productId = null) => {

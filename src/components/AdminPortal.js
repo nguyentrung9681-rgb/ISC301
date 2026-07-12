@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api';
 import Pagination from './Pagination';
+import { normalizeUser } from '../utils/normalizers';
 
 const PRESET_SIZES = ['S', 'M', 'L', 'XL', 'Free Size'];
 const PRESET_COLORS = [
@@ -98,6 +99,7 @@ export default function AdminPortal({
   const [categoryCode, setCategoryCode] = useState('');
   const [editCategoryId, setEditCategoryId] = useState(null);
   const [isSavingCategory, setIsSavingCategory] = useState(false);
+  const [staffRole, setStaffRole] = useState('STAFF');
 
   // Analytics States
   const [revenueStats, setRevenueStats] = useState(null);
@@ -239,7 +241,7 @@ export default function AdminPortal({
     setIsUsersLoading(true);
     try {
       const res = await api.getUsers();
-      setUsers(Array.isArray(res) ? res : []);
+      setUsers((Array.isArray(res) ? res : []).map(normalizeUser));
     } catch (error) {
       console.error("Lỗi lấy danh sách người dùng:", error);
     } finally {
@@ -253,7 +255,7 @@ export default function AdminPortal({
     try {
       const keyword = userSearch.trim();
       const res = keyword ? await api.searchUsers(keyword) : await api.getUsers();
-      setUsers(Array.isArray(res) ? res : []);
+      setUsers((Array.isArray(res) ? res : []).map(normalizeUser));
     } catch (error) {
       console.error("Lỗi tìm kiếm người dùng:", error);
     } finally {
@@ -272,6 +274,18 @@ export default function AdminPortal({
     }
   };
 
+  const handleUpdateUserRole = async (userId, targetRole) => {
+    // Maps lowercase client role back to uppercase server enum role
+    const serverRole = targetRole === 'manager' ? 'MANAGER' : targetRole === 'staff' ? 'STAFF' : 'BUYER';
+    try {
+      await api.updateUserRole(userId, serverRole);
+      showAlert?.('THÀNH CÔNG', `Đã cập nhật vai trò tài khoản thành công!`, 'success');
+      fetchUsers();
+    } catch (error) {
+      showAlert?.('CẬP NHẬT THẤT BẠI', error.message || 'Không thể thay đổi vai trò tài khoản.', 'error');
+    }
+  };
+
   const handleCreateStaffSubmit = async (e) => {
     e.preventDefault();
     if (!staffEmail.trim() || !staffPassword || !staffFullName.trim()) {
@@ -281,14 +295,25 @@ export default function AdminPortal({
 
     setIsSavingStaff(true);
     try {
-      await api.createStaff({
+      const payload = {
         email: staffEmail.trim(),
         password: staffPassword,
         fullName: staffFullName.trim(),
         phone: staffPhone.trim(),
         address: staffAddress.trim()
-      });
-      showAlert?.('THÀNH CÔNG', 'Đã tạo tài khoản nhân viên mới thành công!', 'success');
+      };
+
+      if (staffRole === 'MANAGER') {
+        await api.createManager(payload);
+        showAlert?.('THÀNH CÔNG', 'Đã tạo tài khoản quản lý mới thành công!', 'success');
+      } else if (staffRole === 'BUYER') {
+        await api.register(payload);
+        showAlert?.('THÀNH CÔNG', 'Đã tạo tài khoản khách hàng mới thành công!', 'success');
+      } else {
+        await api.createStaff(payload);
+        showAlert?.('THÀNH CÔNG', 'Đã tạo tài khoản nhân viên mới thành công!', 'success');
+      }
+
       setShowCreateStaffModal(false);
       // Clear form inputs
       setStaffEmail('');
@@ -296,9 +321,10 @@ export default function AdminPortal({
       setStaffFullName('');
       setStaffPhone('');
       setStaffAddress('');
+      setStaffRole('STAFF');
       fetchUsers();
     } catch (error) {
-      showAlert?.('LỖI TẠO TÀI KHOẢN', error.message || 'Không thể tạo tài khoản nhân viên.', 'error');
+      showAlert?.('LỖI TẠO TÀI KHOẢN', error.message || 'Không thể tạo tài khoản.', 'error');
     } finally {
       setIsSavingStaff(false);
     }
@@ -1848,17 +1874,39 @@ export default function AdminPortal({
                             </span>
                           </td>
                           <td style={{ textAlign: 'right' }}>
-                            {u.role === 'customer' || u.role === 'buyer' || u.role === 'staff' ? (
-                              <button
-                                className={u.accountStatus === 'ACTIVE' ? "btn-reject" : "btn-approve"}
-                                onClick={() => handleToggleUserStatus(u.id, u.accountStatus)}
-                                style={{ padding: '4px 8px', fontSize: '12px' }}
-                              >
-                                {u.accountStatus === 'ACTIVE' ? 'Khóa' : 'Mở khóa'}
-                              </button>
-                            ) : (
-                              <span style={{ fontSize: '11px', color: 'var(--secondary-muted)', fontStyle: 'italic' }}>Không thể tác vụ</span>
-                            )}
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                              {/* Role selection dropdown (Manager only, cannot edit other managers) */}
+                              {currentRole === 'manager' && u.role !== 'manager' && (
+                                <select
+                                  value={u.role}
+                                  onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                                  style={{
+                                    padding: '4px 8px',
+                                    fontSize: '12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--border-light)',
+                                    background: '#fff',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <option value="customer">Buyer</option>
+                                  <option value="staff">Nhân viên</option>
+                                  <option value="manager">Quản lý</option>
+                                </select>
+                              )}
+
+                              {u.role === 'customer' || u.role === 'buyer' || u.role === 'staff' ? (
+                                <button
+                                  className={u.accountStatus === 'ACTIVE' ? "btn-reject" : "btn-approve"}
+                                  onClick={() => handleToggleUserStatus(u.id, u.accountStatus)}
+                                  style={{ padding: '4px 8px', fontSize: '12px' }}
+                                >
+                                  {u.accountStatus === 'ACTIVE' ? 'Khóa' : 'Mở khóa'}
+                                </button>
+                              ) : (
+                                u.role === 'manager' && <span style={{ fontSize: '11px', color: 'var(--secondary-muted)', fontStyle: 'italic' }}>Không thể tác vụ</span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1894,13 +1942,27 @@ export default function AdminPortal({
                   boxShadow: 'var(--shadow-lg)'
                 }} className="animate-fade">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800 }}>Tạo Tài Khoản Nhân Viên Mới</h3>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800 }}>Tạo Tài Khoản Mới</h3>
                     <button onClick={() => setShowCreateStaffModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>
                       <X size={20} />
                     </button>
                   </div>
 
                   <form onSubmit={handleCreateStaffSubmit}>
+                    <div className="admin-form-group" style={{ marginBottom: '12px' }}>
+                      <label className="input-label">Vai trò tài khoản *</label>
+                      <select
+                        className="admin-input"
+                        value={staffRole}
+                        onChange={(e) => setStaffRole(e.target.value)}
+                        style={{ background: '#fff', cursor: 'pointer' }}
+                      >
+                        <option value="STAFF">Nhân viên (Staff)</option>
+                        <option value="MANAGER">Quản lý (Manager)</option>
+                        <option value="BUYER">Khách hàng (Buyer)</option>
+                      </select>
+                    </div>
+
                     <div className="admin-form-group" style={{ marginBottom: '12px' }}>
                       <label className="input-label">Email đăng nhập *</label>
                       <input
