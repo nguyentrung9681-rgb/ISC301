@@ -219,8 +219,8 @@ export const api = {
 
   getCart: () => apiFetch("/api/client/cart"),
 
-  addToCart: (productId, quantity) =>
-    apiFetch(`/api/client/cart/add?productId=${productId}&quantity=${quantity}`, {
+  addToCart: (productId, quantity, size, color) =>
+    apiFetch(`/api/client/cart/add?productId=${productId}&quantity=${quantity}&size=${encodeURIComponent(size || '')}&color=${encodeURIComponent(color || '')}`, {
       method: "POST",
     }),
 

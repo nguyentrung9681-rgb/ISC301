@@ -132,7 +132,9 @@ export const normalizeCartItem = (item) => {
     cartItemId: item?.id || item?.cartItemId,
     quantity: Number(item?.quantity || 1),
     selectedSize: item?.selectedSize || 'M',
-    selectedColor: item?.selectedColor || { name: 'Mặc định', hex: '#000' }
+    selectedColor: typeof item?.selectedColor === 'string'
+      ? { name: item.selectedColor, hex: resolveColorHex(item.selectedColor) }
+      : (item?.selectedColor || { name: 'Mặc định', hex: '#000' })
   };
 };
 

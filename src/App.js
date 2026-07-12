@@ -145,43 +145,6 @@ export default function App() {
           setCategories(normalizedCategories);
         }
 
-        // Map products
-        const mappedProducts = (Array.isArray(productsRes) ? productsRes : []).map(p => ({
-          id: p.id,
-          name: p.productName || p.name,
-          description: p.description || '',
-          price: p.price || 0,
-          category: p.category || 'ao',
-          categoryLabel: p.categoryLabel || p.categoryName || catMap[p.category] || p.category || 'Thời trang',
-          sizes: ['S', 'M', 'L', 'XL'],
-          colors: [{ name: 'Mặc định', hex: '#000' }],
-          inventory: p.stockQuantity || 100,
-          soldCount: p.soldCount || 0,
-          status: 'approved',
-          isNew: true,
-          isBestSeller: p.ratingAverage >= 4.5,
-          images: parseImages(p.imageUrl)
-        }));
-        setProducts(mappedProducts);
-
-        // Map cart
-        const mapCart = (backendCart) => (Array.isArray(backendCart) ? backendCart : []).map(c => ({
-          ...c,
-          cartItemId: c.id,
-          id: c.product?.id || c.id,
-          name: c.product?.productName || c.product?.name || c.name || 'Sản phẩm',
-          price: c.product?.price || c.price || 0,
-          inventory: c.product?.stockQuantity || c.inventory || 100,
-          quantity: c.quantity || 1,
-          images: c.product?.imageUrl ? parseImages(c.product.imageUrl) : (c.images || ['https://via.placeholder.com/400x500']),
-          selectedSize: c.selectedSize || 'M',
-          selectedColor: c.selectedColor || { name: 'Mặc định', hex: '#000' }
-        }));
-
-        setCart(mapCart(cartRes.data || cartRes || []));
-
-        setWishlist(wishlistRes.data || wishlistRes || []);
-        setOrders(ordersRes.data || ordersRes || []);
         setProducts((Array.isArray(productsRes) ? productsRes : []).map(normalizeProduct));
         setCart((Array.isArray(cartRes) ? cartRes : []).map(normalizeCartItem));
         setWishlist((Array.isArray(wishlistRes) ? wishlistRes : []).map(normalizeCartItem));
@@ -490,19 +453,6 @@ export default function App() {
     try {
       const cartRes = await api.getCart();
       const rawCart = Array.isArray(cartRes) ? cartRes : [];
-      const mapCart = (backendCart) => (Array.isArray(backendCart) ? backendCart : []).map(c => ({
-        ...c,
-        cartItemId: c.id,
-        id: c.product?.id || c.id,
-        name: c.product?.productName || c.product?.name || c.name || 'Sản phẩm',
-        price: c.product?.price || c.price || 0,
-        inventory: c.product?.stockQuantity || c.inventory || 100,
-        quantity: c.quantity || 1,
-        images: c.product?.imageUrl ? parseImages(c.product.imageUrl) : (c.images || ['https://via.placeholder.com/400x500']),
-        selectedSize: c.selectedSize || 'M',
-        selectedColor: c.selectedColor || { name: 'Mặc định', hex: '#000' }
-      }));
-      setCart(mapCart(rawCart));
       setCart(rawCart.map(normalizeCartItem));
     } catch (err) {
       console.error('Error refreshing cart:', err);
@@ -511,8 +461,15 @@ export default function App() {
 
   const handleAddToCart = async (cartItem) => {
     if (!cartItem) return;
+    if (!currentUser) {
+      setShowLoginModal(true);
+      addToast("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!", "warning");
+      return;
+    }
     try {
-      await api.addToCart(cartItem.id, cartItem.quantity);
+      const size = cartItem.selectedSize || 'M';
+      const colorName = cartItem.selectedColor?.name || cartItem.selectedColor || 'Mặc định';
+      await api.addToCart(cartItem.id, cartItem.quantity, size, colorName);
       await fetchAndSetCart();
       addToast(`Đã thêm ${cartItem.quantity} sản phẩm "${cartItem.name}" vào giỏ hàng!`, 'success');
     } catch (err) {
