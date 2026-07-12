@@ -24,11 +24,12 @@ export default function ShopPage({
   handleToggleWishlist
 }) {
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [sortBy, setSortBy] = useState('newest');
   const itemsPerPage = 9;
 
   useEffect(() => {
     setCurrentPageNumber(1);
-  }, [searchQuery, filterCategory, filterSize, filterColor, filterPriceRange]);
+  }, [searchQuery, filterCategory, filterSize, filterColor, filterPriceRange, sortBy]);
 
   // --- FILTER SHOP SEARCH FLOW ---
   const activeApprovedProducts = products;
@@ -90,8 +91,24 @@ export default function ShopPage({
     return true;
   });
 
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const paginatedProducts = filteredProducts.slice(
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortBy === 'newest') {
+      return Number(b.id || 0) - Number(a.id || 0);
+    }
+    if (sortBy === 'oldest') {
+      return Number(a.id || 0) - Number(b.id || 0);
+    }
+    if (sortBy === 'name-asc') {
+      return (a.name || '').localeCompare(b.name || '', 'vi');
+    }
+    if (sortBy === 'name-desc') {
+      return (b.name || '').localeCompare(a.name || '', 'vi');
+    }
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+  const paginatedProducts = sortedProducts.slice(
     (currentPageNumber - 1) * itemsPerPage,
     currentPageNumber * itemsPerPage
   );
@@ -260,8 +277,33 @@ export default function ShopPage({
             </div>
           ) : (
             <div>
-              <div style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--secondary-muted)', fontWeight: 500 }}>
-                Tìm thấy <strong>{filteredProducts.length}</strong> sản phẩm thiết kế Jusstlife
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ fontSize: '14px', color: 'var(--secondary-muted)', fontWeight: 500 }}>
+                  Tìm thấy <strong>{filteredProducts.length}</strong> sản phẩm thiết kế Jusstlife
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)' }}>Sắp xếp:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '13px',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'white',
+                      fontWeight: 600,
+                      color: 'var(--secondary)',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="newest">Mới nhất</option>
+                    <option value="oldest">Cũ nhất</option>
+                    <option value="name-asc">Tên: A-Z</option>
+                    <option value="name-desc">Tên: Z-A</option>
+                  </select>
+                </div>
               </div>
               <div className="products-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                 {paginatedProducts.map((prod) => (

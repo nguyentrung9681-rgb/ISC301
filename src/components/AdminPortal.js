@@ -211,13 +211,17 @@ export default function AdminPortal({
   const [ordersPage, setOrdersPage] = useState(1);
   const [usersPage, setUsersPage] = useState(1);
 
+  // Sorting States
+  const [prodSortBy, setProdSortBy] = useState('newest');
+  const [orderSortBy, setOrderSortBy] = useState('newest');
+
   useEffect(() => {
     setProductsPage(1);
-  }, [products.length]);
+  }, [products.length, prodSortBy]);
 
   useEffect(() => {
     setOrdersPage(1);
-  }, [orders.length]);
+  }, [orders.length, orderSortBy]);
 
   useEffect(() => {
     setUsersPage(1);
@@ -362,17 +366,36 @@ export default function AdminPortal({
   const activeCategories = categories.length > 0 ? categories : DEFAULT_CATEGORIES;
 
   const productsPageSize = 10;
-  const totalProductsPages = Math.ceil(products.length / productsPageSize);
+  const sortedProducts = useMemo(() => {
+    return [...products].sort((a, b) => {
+      if (prodSortBy === 'newest') return Number(b.id || 0) - Number(a.id || 0);
+      if (prodSortBy === 'oldest') return Number(a.id || 0) - Number(b.id || 0);
+      if (prodSortBy === 'name-asc') return (a.name || '').localeCompare(b.name || '', 'vi');
+      if (prodSortBy === 'name-desc') return (b.name || '').localeCompare(a.name || '', 'vi');
+      return 0;
+    });
+  }, [products, prodSortBy]);
+
+  const totalProductsPages = Math.ceil(sortedProducts.length / productsPageSize);
   const paginatedProducts = useMemo(() => {
-    return products.slice((productsPage - 1) * productsPageSize, productsPage * productsPageSize);
-  }, [products, productsPage]);
+    return sortedProducts.slice((productsPage - 1) * productsPageSize, productsPage * productsPageSize);
+  }, [sortedProducts, productsPage]);
 
   const ordersPageSize = 10;
-  const reversedOrders = useMemo(() => [...orders].reverse(), [orders]);
-  const totalOrdersPages = Math.ceil(reversedOrders.length / ordersPageSize);
+  const sortedOrders = useMemo(() => {
+    return [...orders].sort((a, b) => {
+      if (orderSortBy === 'newest') return Number(b.id || 0) - Number(a.id || 0);
+      if (orderSortBy === 'oldest') return Number(a.id || 0) - Number(b.id || 0);
+      if (orderSortBy === 'name-asc') return (a.customerName || '').localeCompare(b.customerName || '', 'vi');
+      if (orderSortBy === 'name-desc') return (b.customerName || '').localeCompare(a.customerName || '', 'vi');
+      return 0;
+    });
+  }, [orders, orderSortBy]);
+
+  const totalOrdersPages = Math.ceil(sortedOrders.length / ordersPageSize);
   const paginatedOrders = useMemo(() => {
-    return reversedOrders.slice((ordersPage - 1) * ordersPageSize, ordersPage * ordersPageSize);
-  }, [reversedOrders, ordersPage]);
+    return sortedOrders.slice((ordersPage - 1) * ordersPageSize, ordersPage * ordersPageSize);
+  }, [sortedOrders, ordersPage]);
 
   const usersPageSize = 10;
   const totalUsersPages = Math.ceil(users.length / usersPageSize);
@@ -1136,11 +1159,36 @@ export default function AdminPortal({
            ========================================================================= */}
         {activeMenu === 'products-list' && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '22px', fontWeight: 800 }}>Quản Lý Toàn Bộ Sản Phẩm</h2>
-              <button className="btn-admin-submit" onClick={() => setActiveMenu('add-product')} style={{ padding: '8px 16px', borderRadius: 'var(--radius-full)' }}>
-                + Thêm Sản Phẩm
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+              <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Quản Lý Toàn Bộ Sản Phẩm</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)' }}>Sắp xếp:</span>
+                  <select
+                    value={prodSortBy}
+                    onChange={(e) => setProdSortBy(e.target.value)}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '13px',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'white',
+                      fontWeight: 600,
+                      color: 'var(--secondary)',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="newest">Mới nhất</option>
+                    <option value="oldest">Cũ nhất</option>
+                    <option value="name-asc">Tên: A-Z</option>
+                    <option value="name-desc">Tên: Z-A</option>
+                  </select>
+                </div>
+                <button className="btn-admin-submit" onClick={() => setActiveMenu('add-product')} style={{ padding: '8px 16px', borderRadius: 'var(--radius-full)' }}>
+                  + Thêm Sản Phẩm
+                </button>
+              </div>
             </div>
 
             <table className="admin-table">
@@ -1535,7 +1583,32 @@ export default function AdminPortal({
            ========================================================================= */}
         {activeMenu === 'orders-list' && (
           <div>
-            <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '20px' }}>Quản Lý Đơn Đặt Hàng Của Khách</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+              <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Quản Lý Đơn Đặt Hàng Của Khách</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)' }}>Sắp xếp:</span>
+                <select
+                  value={orderSortBy}
+                  onChange={(e) => setOrderSortBy(e.target.value)}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '13px',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'white',
+                    fontWeight: 600,
+                    color: 'var(--secondary)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="newest">Mới nhất</option>
+                  <option value="oldest">Cũ nhất</option>
+                  <option value="name-asc">Tên KH: A-Z</option>
+                  <option value="name-desc">Tên KH: Z-A</option>
+                </select>
+              </div>
+            </div>
 
             <table className="admin-table">
               <thead>
