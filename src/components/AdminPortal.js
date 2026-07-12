@@ -107,6 +107,7 @@ export default function AdminPortal({
   const [lowStockWarning, setLowStockWarning] = useState([]);
   const [funnelStats, setFunnelStats] = useState(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [analyticsTab, setAnalyticsTab] = useState('overview');
 
   // Voucher States
   const [vouchers, setVouchers] = useState([]);
@@ -719,6 +720,78 @@ export default function AdminPortal({
           <div>
             <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '24px' }}>Báo Cáo Doanh Thu & Hệ Thống</h2>
 
+            {/* SUB-TABS FOR ANALYTICS */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
+              <button 
+                type="button"
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: 'var(--radius-sm)', 
+                  fontWeight: 600, 
+                  fontSize: '13px',
+                  background: analyticsTab === 'overview' ? 'var(--primary)' : 'transparent',
+                  color: analyticsTab === 'overview' ? '#fff' : 'var(--secondary-muted)',
+                  border: '1px solid ' + (analyticsTab === 'overview' ? 'var(--primary)' : 'var(--border-light)'),
+                  cursor: 'pointer',
+                  transition: 'var(--transition)'
+                }}
+                onClick={() => setAnalyticsTab('overview')}
+              >
+                Tổng Quan Doanh Thu
+              </button>
+              <button 
+                type="button"
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: 'var(--radius-sm)', 
+                  fontWeight: 600, 
+                  fontSize: '13px',
+                  background: analyticsTab === 'funnel' ? 'var(--primary)' : 'transparent',
+                  color: analyticsTab === 'funnel' ? '#fff' : 'var(--secondary-muted)',
+                  border: '1px solid ' + (analyticsTab === 'funnel' ? 'var(--primary)' : 'var(--border-light)'),
+                  cursor: 'pointer',
+                  transition: 'var(--transition)'
+                }}
+                onClick={() => setAnalyticsTab('funnel')}
+              >
+                Phễu Chuyển Đổi (Funnel)
+              </button>
+              <button 
+                type="button"
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: 'var(--radius-sm)', 
+                  fontWeight: 600, 
+                  fontSize: '13px',
+                  background: analyticsTab === 'products-customers' ? 'var(--primary)' : 'transparent',
+                  color: analyticsTab === 'products-customers' ? '#fff' : 'var(--secondary-muted)',
+                  border: '1px solid ' + (analyticsTab === 'products-customers' ? 'var(--primary)' : 'var(--border-light)'),
+                  cursor: 'pointer',
+                  transition: 'var(--transition)'
+                }}
+                onClick={() => setAnalyticsTab('products-customers')}
+              >
+                Sản Phẩm & Khách Hàng
+              </button>
+              <button 
+                type="button"
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: 'var(--radius-sm)', 
+                  fontWeight: 600, 
+                  fontSize: '13px',
+                  background: analyticsTab === 'inventory' ? 'var(--primary)' : 'transparent',
+                  color: analyticsTab === 'inventory' ? '#fff' : 'var(--secondary-muted)',
+                  border: '1px solid ' + (analyticsTab === 'inventory' ? 'var(--primary)' : 'var(--border-light)'),
+                  cursor: 'pointer',
+                  transition: 'var(--transition)'
+                }}
+                onClick={() => setAnalyticsTab('inventory')}
+              >
+                Cảnh Báo Tồn Kho
+              </button>
+            </div>
+
             {isLoadingStats ? (
               <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--secondary-muted)' }}>
                 <RefreshCw className="animate-spin" size={32} style={{ margin: '0 auto 10px' }} />
@@ -726,91 +799,96 @@ export default function AdminPortal({
               </div>
             ) : (
               <>
-                <div className="admin-stats-grid">
-                  <div className="stat-card">
-                    <div className="stat-icon-wrapper revenue">
-                      <DollarSign size={20} />
-                    </div>
-                    <div>
-                      <div className="stat-value">{(revenueStats?.totalRevenue ?? totalRevenue).toLocaleString('vi-VN')} ₫</div>
-                      <div className="stat-label">Doanh thu thực tế</div>
-                    </div>
-                  </div>
-
-                  <div className="stat-card">
-                    <div className="stat-icon-wrapper orders">
-                      <ShoppingBag size={20} />
-                    </div>
-                    <div>
-                      <div className="stat-value">{revenueStats?.totalOrders ?? orders.length} Đơn</div>
-                      <div className="stat-label">Tổng số đơn đặt hàng</div>
-                    </div>
-                  </div>
-
-                  <div className="stat-card">
-                    <div className="stat-icon-wrapper products">
-                      <TrendingUp size={20} />
-                    </div>
-                    <div>
-                      <div className="stat-value">{activeProductsCount} SP</div>
-                      <div className="stat-label">Sản phẩm đang bán</div>
-                    </div>
-                  </div>
-
-                  <div className="stat-card" style={{ border: outOfStockCount > 0 ? '1px solid #c62828' : '' }}>
-                    <div className="stat-icon-wrapper pending" style={{ background: outOfStockCount > 0 ? '#ffebee' : '' }}>
-                      <AlertCircle size={20} />
-                    </div>
-                    <div>
-                      <div className="stat-value">{outOfStockCount} SP</div>
-                      <div className="stat-label">Sắp hết hàng (&lt;5 cái)</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ background: 'var(--bg-main)', padding: '24px', borderRadius: 'var(--radius-lg)', marginBottom: '30px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={18} />
-                    <span>{monthlyRevenue.length > 0 ? 'Doanh Thu Thực Tế Theo Tháng (VND)' : 'Doanh Thu Ước Tính Theo Tuần (VND)'}</span>
-                  </h3>
-
-                  <div style={{ display: 'flex', alignItems: 'flex-end', height: '220px', gap: '12px', padding: '0 20px', marginTop: '10px', overflowX: 'auto' }}>
-                    {(monthlyRevenue.length > 0 
-                      ? monthlyRevenue.map(item => ({ name: item.period, val: item.revenue }))
-                      : [
-                          { name: 'Tuần 1', val: totalRevenue * 0.25 || 2500000 },
-                          { name: 'Tuần 2', val: totalRevenue * 0.35 || 4200000 },
-                          { name: 'Tuần 3', val: totalRevenue * 0.2 || 3100000 },
-                          { name: 'Tuần 4 (Hiện tại)', val: totalRevenue || 7500000 }
-                        ]
-                    ).map((item, idx, arr) => {
-                      const maxVal = Math.max(...arr.map(a => a.val)) || 10000000;
-                      const percent = Math.min((item.val / maxVal) * 80, 80);
-
-                      return (
-                        <div key={idx} style={{ flex: 1, minWidth: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{item.val.toLocaleString('vi-VN')} ₫</span>
-                          <div
-                            style={{
-                              width: '100%',
-                              maxWidth: '36px',
-                              height: `${percent + 20}px`,
-                              background: idx === arr.length - 1 ? 'var(--primary-gradient)' : '#bbb',
-                              borderRadius: 'var(--radius-sm) var(--radius-sm) 0 0',
-                              boxShadow: idx === arr.length - 1 ? '0 4px 15px rgba(255,87,34,0.3)' : '',
-                              transition: 'height 0.5s ease-out'
-                            }}
-                          />
-                          <span style={{ fontSize: '11px', color: 'var(--secondary-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{item.name}</span>
+                {/* 1. TỔNG QUAN DOANH THU */}
+                {analyticsTab === 'overview' && (
+                  <div className="animate-fade">
+                    <div className="admin-stats-grid">
+                      <div className="stat-card">
+                        <div className="stat-icon-wrapper revenue">
+                          <DollarSign size={20} />
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                        <div>
+                          <div className="stat-value">{(revenueStats?.totalRevenue ?? totalRevenue).toLocaleString('vi-VN')} ₫</div>
+                          <div className="stat-label">Doanh thu thực tế</div>
+                        </div>
+                      </div>
 
-                {/* Phễu Chuyển Đổi (Conversion Funnel) */}
-                {funnelStats && (
-                  <div style={{ background: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)', marginBottom: '30px' }}>
+                      <div className="stat-card">
+                        <div className="stat-icon-wrapper orders">
+                          <ShoppingBag size={20} />
+                        </div>
+                        <div>
+                          <div className="stat-value">{revenueStats?.totalOrders ?? orders.length} Đơn</div>
+                          <div className="stat-label">Tổng số đơn đặt hàng</div>
+                        </div>
+                      </div>
+
+                      <div className="stat-card">
+                        <div className="stat-icon-wrapper products">
+                          <TrendingUp size={20} />
+                        </div>
+                        <div>
+                          <div className="stat-value">{activeProductsCount} SP</div>
+                          <div className="stat-label">Sản phẩm đang bán</div>
+                        </div>
+                      </div>
+
+                      <div className="stat-card" style={{ border: outOfStockCount > 0 ? '1px solid #c62828' : '' }}>
+                        <div className="stat-icon-wrapper pending" style={{ background: outOfStockCount > 0 ? '#ffebee' : '' }}>
+                          <AlertCircle size={20} />
+                        </div>
+                        <div>
+                          <div className="stat-value">{outOfStockCount} SP</div>
+                          <div className="stat-label">Sắp hết hàng (&lt;5 cái)</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ background: 'var(--bg-main)', padding: '24px', borderRadius: 'var(--radius-lg)', marginBottom: '30px' }}>
+                      <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Calendar size={18} />
+                        <span>{monthlyRevenue.length > 0 ? 'Doanh Thu Thực Tế Theo Tháng (VND)' : 'Doanh Thu Ước Tính Theo Tuần (VND)'}</span>
+                      </h3>
+
+                      <div style={{ display: 'flex', alignItems: 'flex-end', height: '220px', gap: '12px', padding: '0 20px', marginTop: '10px', overflowX: 'auto' }}>
+                        {(monthlyRevenue.length > 0 
+                          ? monthlyRevenue.map(item => ({ name: item.period, val: item.revenue }))
+                          : [
+                              { name: 'Tuần 1', val: totalRevenue * 0.25 || 2500000 },
+                              { name: 'Tuần 2', val: totalRevenue * 0.35 || 4200000 },
+                              { name: 'Tuần 3', val: totalRevenue * 0.2 || 3100000 },
+                              { name: 'Tuần 4 (Hiện tại)', val: totalRevenue || 7500000 }
+                            ]
+                        ).map((item, idx, arr) => {
+                          const maxVal = Math.max(...arr.map(a => a.val)) || 10000000;
+                          const percent = Math.min((item.val / maxVal) * 80, 80);
+
+                          return (
+                            <div key={idx} style={{ flex: 1, minWidth: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{item.val.toLocaleString('vi-VN')} ₫</span>
+                              <div
+                                style={{
+                                  width: '100%',
+                                  maxWidth: '36px',
+                                  height: `${percent + 20}px`,
+                                  background: idx === arr.length - 1 ? 'var(--primary-gradient)' : '#bbb',
+                                  borderRadius: 'var(--radius-sm) var(--radius-sm) 0 0',
+                                  boxShadow: idx === arr.length - 1 ? '0 4px 15px rgba(255,87,34,0.3)' : '',
+                                  transition: 'height 0.5s ease-out'
+                                }}
+                              />
+                              <span style={{ fontSize: '11px', color: 'var(--secondary-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{item.name}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. PHỄU CHUYỂN ĐỔI */}
+                {analyticsTab === 'funnel' && funnelStats && (
+                  <div style={{ background: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)', marginBottom: '30px' }} className="animate-fade">
                     <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '20px', color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <TrendingUp size={18} />
                       <span>📊 PHỄU CHUYỂN ĐỔI DOANH SỐ (HÀNH TRÌNH KHÁCH HÀNG)</span>
@@ -908,115 +986,122 @@ export default function AdminPortal({
                   </div>
                 )}
 
-                <div className="admin-form-grid" style={{ marginTop: '30px', alignItems: 'start', gridTemplateColumns: '1fr 1fr' }}>
-                  {/* Top Selling Products */}
-                  <div style={{ background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
-                    <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--secondary)' }}>🏆 TOP SẢN PHẨM BÁN CHẠY</h3>
-                    <table className="admin-table" style={{ fontSize: '12.5px' }}>
-                      <thead>
-                        <tr>
-                          <th>Sản phẩm</th>
-                          <th style={{ textAlign: 'center' }}>Đã bán</th>
-                          <th style={{ textAlign: 'right' }}>Doanh thu</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {topProducts.length === 0 ? (
-                          <tr><td colSpan="3" style={{ textAlign: 'center', padding: '20px 0', color: 'var(--secondary-muted)' }}>Chưa có dữ liệu</td></tr>
-                        ) : (
-                          topProducts.map((p) => (
-                            <tr key={p.productId}>
-                              <td>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  <img src={p.imageUrl} alt="" style={{ width: '30px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
-                                  <div style={{ fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={p.productName}>{p.productName}</div>
-                                </div>
-                              </td>
-                              <td style={{ textAlign: 'center', fontWeight: 700 }}>{p.totalQuantitySold}</td>
-                              <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{p.totalRevenue.toLocaleString('vi-VN')} ₫</td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* VIP Customers */}
-                  <div style={{ background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
-                    <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--secondary)' }}>💎 KHÁCH HÀNG VIP (CHI TIÊU NHIỀU)</h3>
-                    <table className="admin-table" style={{ fontSize: '12.5px' }}>
-                      <thead>
-                        <tr>
-                          <th>Khách hàng</th>
-                          <th style={{ textAlign: 'center' }}>Số đơn</th>
-                          <th style={{ textAlign: 'right' }}>Chi tiêu</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {vipCustomers.length === 0 ? (
-                          <tr><td colSpan="3" style={{ textAlign: 'center', padding: '20px 0', color: 'var(--secondary-muted)' }}>Chưa có dữ liệu</td></tr>
-                        ) : (
-                          vipCustomers.map((c) => (
-                            <tr key={c.userId}>
-                              <td>
-                                <div>
-                                  <div style={{ fontWeight: 600 }}>{c.fullName}</div>
-                                  <div style={{ fontSize: '11px', color: 'var(--secondary-muted)' }}>{c.email}</div>
-                                </div>
-                              </td>
-                              <td style={{ textAlign: 'center', fontWeight: 700 }}>{c.totalOrders} đơn</td>
-                              <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{c.totalSpent.toLocaleString('vi-VN')} ₫</td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Low Stock Alerts */}
-                <div style={{ background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)', marginTop: '30px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: '#c62828', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <AlertCircle size={18} />
-                    <span>⚠️ CẢNH BÁO TỒN KHO THẤP (CẦN NHẬP THÊM HÀNG)</span>
-                  </h3>
-                  <table className="admin-table" style={{ fontSize: '12.5px' }}>
-                    <thead>
-                      <tr>
-                        <th>Sản phẩm</th>
-                        <th>Danh mục</th>
-                        <th>Số lượng tồn</th>
-                        <th>Ngưỡng cảnh báo</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {lowStockWarning.length === 0 ? (
-                        <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px 0', color: 'var(--secondary-muted)' }}>Tất cả sản phẩm đều đủ lượng tồn kho!</td></tr>
-                      ) : (
-                        lowStockWarning.map((p) => (
-                          <tr key={p.productId}>
-                            <td>
-                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <img src={p.imageUrl} alt="" style={{ width: '30px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
-                                <div style={{ fontWeight: 600 }}>{p.productName}</div>
-                              </div>
-                            </td>
-                            <td>{p.category}</td>
-                            <td style={{ fontWeight: 700, color: '#c62828' }}>{p.stockQuantity} cái</td>
-                            <td style={{ color: 'var(--secondary-muted)' }}>{p.threshold} cái</td>
+                {/* 3. SẢN PHẨM & KHÁCH HÀNG */}
+                {analyticsTab === 'products-customers' && (
+                  <div className="admin-form-grid animate-fade" style={{ alignItems: 'start', gridTemplateColumns: '1fr 1fr' }}>
+                    {/* Top Selling Products */}
+                    <div style={{ background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--secondary)' }}>🏆 TOP SẢN PHẨM BÁN CHẠY</h3>
+                      <table className="admin-table" style={{ fontSize: '12.5px' }}>
+                        <thead>
+                          <tr>
+                            <th>Sản phẩm</th>
+                            <th style={{ textAlign: 'center' }}>Đã bán</th>
+                            <th style={{ textAlign: 'right' }}>Doanh thu</th>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                        </thead>
+                        <tbody>
+                          {topProducts.length === 0 ? (
+                            <tr><td colSpan="3" style={{ textAlign: 'center', padding: '20px 0', color: 'var(--secondary-muted)' }}>Chưa có dữ liệu</td></tr>
+                          ) : (
+                            topProducts.map((p) => (
+                              <tr key={p.productId}>
+                                <td>
+                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <img src={p.imageUrl} alt="" style={{ width: '30px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
+                                    <div style={{ fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={p.productName}>{p.productName}</div>
+                                  </div>
+                                </td>
+                                <td style={{ textAlign: 'center', fontWeight: 700 }}>{p.totalQuantitySold}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{p.totalRevenue.toLocaleString('vi-VN')} ₫</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* VIP Customers */}
+                    <div style={{ background: 'white', padding: '20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--secondary)' }}>💎 KHÁCH HÀNG VIP (CHI TIÊU NHIỀU)</h3>
+                      <table className="admin-table" style={{ fontSize: '12.5px' }}>
+                        <thead>
+                          <tr>
+                            <th>Khách hàng</th>
+                            <th style={{ textAlign: 'center' }}>Số đơn</th>
+                            <th style={{ textAlign: 'right' }}>Chi tiêu</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {vipCustomers.length === 0 ? (
+                            <tr><td colSpan="3" style={{ textAlign: 'center', padding: '20px 0', color: 'var(--secondary-muted)' }}>Chưa có dữ liệu</td></tr>
+                          ) : (
+                            vipCustomers.map((c) => (
+                              <tr key={c.userId}>
+                                <td>
+                                  <div>
+                                    <div style={{ fontWeight: 600 }}>{c.fullName}</div>
+                                    <div style={{ fontSize: '11px', color: 'var(--secondary-muted)' }}>{c.email}</div>
+                                  </div>
+                                </td>
+                                <td style={{ textAlign: 'center', fontWeight: 700 }}>{c.totalOrders} đơn</td>
+                                <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{c.totalSpent.toLocaleString('vi-VN')} ₫</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. CẢNH BÁO TỒN KHO & MẸO QUẢN LÝ */}
+                {analyticsTab === 'inventory' && (
+                  <div className="animate-fade">
+                    <div style={{ background: 'white', padding: '25px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: '#c62828', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <AlertCircle size={18} />
+                        <span>⚠️ CẢNH BÁO TỒN KHO THẤP (CẦN NHẬP THÊM HÀNG)</span>
+                      </h3>
+                      <table className="admin-table" style={{ fontSize: '12.5px' }}>
+                        <thead>
+                          <tr>
+                            <th>Sản phẩm</th>
+                            <th>Danh mục</th>
+                            <th>Số lượng tồn</th>
+                            <th>Ngưỡng cảnh báo</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {lowStockWarning.length === 0 ? (
+                            <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px 0', color: 'var(--secondary-muted)' }}>Tất cả sản phẩm đều đủ lượng tồn kho!</td></tr>
+                          ) : (
+                            lowStockWarning.map((p) => (
+                              <tr key={p.productId}>
+                                <td>
+                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <img src={p.imageUrl} alt="" style={{ width: '30px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
+                                    <div style={{ fontWeight: 600 }}>{p.productName}</div>
+                                  </div>
+                                </td>
+                                <td>{p.category}</td>
+                                <td style={{ fontWeight: 700, color: '#c62828' }}>{p.stockQuantity} cái</td>
+                                <td style={{ color: 'var(--secondary-muted)' }}>{p.threshold} cái</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '16px', padding: '20px', background: '#e3f2fd', borderRadius: 'var(--radius-md)', color: '#0d47a1', fontSize: '14px', alignItems: 'center', marginTop: '30px' }}>
+                      <InfoIcon />
+                      <span><strong>Mẹo Quản Lý:</strong> Dữ liệu trên được thống kê thời gian thực từ hoạt động mua sắm của khách hàng. Hãy theo dõi cảnh báo tồn kho để bổ sung hàng hóa kịp thời.</span>
+                    </div>
+                  </div>
+                )}
               </>
             )}
-
-            <div style={{ display: 'flex', gap: '16px', padding: '20px', background: '#e3f2fd', borderRadius: 'var(--radius-md)', color: '#0d47a1', fontSize: '14px', alignItems: 'center', marginTop: '30px' }}>
-              <InfoIcon />
-              <span><strong>Mẹo Quản Lý:</strong> Dữ liệu trên được thống kê thời gian thực từ hoạt động mua sắm của khách hàng. Hãy theo dõi cảnh báo tồn kho để bổ sung hàng hóa kịp thời.</span>
-            </div>
           </div>
         )}
 

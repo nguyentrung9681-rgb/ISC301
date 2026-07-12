@@ -312,51 +312,29 @@ export default function ProductDetailModal({
                 return (
                   <div 
                     key={relProd.id} 
-                    style={{ 
-                      border: '1px solid var(--border-light)', 
-                      borderRadius: 'var(--radius-md)', 
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                      background: '#fff',
-                      transition: 'all 0.3s ease'
-                    }}
                     onClick={() => {
-                      // Switch to this product details in the modal
-                      // Wait! It triggers state update in parent. Perfect!
                       onAddToCart(null); // trigger dummy to reset details
                       setTimeout(() => {
-                        // Trick parent to load this product details!
-                        // In App.js we will handle detail modal selection
-                        // To achieve this cleanly, we can trigger select product
                         onBuyNow({ type: "SELECT_RELATED", product: relProd });
                       }, 50);
                     }}
-                    className="service-card" // reuse card scale style
+                    className="related-product-card"
                   >
                     <img 
                       src={relProd.images[0]} 
                       alt={relProd.name} 
-                      style={{ width: '100%', height: '140px', objectFit: 'cover' }}
+                      className="related-product-card-img"
                     />
-                    <div style={{ padding: '10px' }}>
-                      <h4 style={{ 
-                        fontSize: '12px', 
-                        fontWeight: 600, 
-                        height: '34px', 
-                        overflow: 'hidden',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        marginBottom: '6px'
-                      }}>
+                    <div className="related-product-card-info">
+                      <h4 className="related-product-card-name">
                         {relProd.name}
                       </h4>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '13px' }}>
+                      <div className="related-product-card-price-row">
+                        <span className="related-product-card-price">
                           {formatPrice(relProd.price)}
                         </span>
                         {relDiscount > 0 && (
-                          <span style={{ fontSize: '9px', background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 700, padding: '1px 4px', borderRadius: '2px' }}>
+                          <span className="related-product-card-discount">
                             -{relDiscount}%
                           </span>
                         )}
