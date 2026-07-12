@@ -834,7 +834,7 @@ export default function AdminPortal({
                           <DollarSign size={20} />
                         </div>
                         <div>
-                          <div className="stat-value">{(revenueStats?.totalRevenue ?? totalRevenue).toLocaleString('vi-VN')} ₫</div>
+                          <div className="stat-value" style={{ whiteSpace: 'nowrap' }}>{(revenueStats?.totalRevenue ?? totalRevenue).toLocaleString('vi-VN') + '\u00a0₫'}</div>
                           <div className="stat-label">Doanh thu thực tế</div>
                         </div>
                       </div>
@@ -891,7 +891,7 @@ export default function AdminPortal({
 
                           return (
                             <div key={idx} style={{ flex: 1, minWidth: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{item.val.toLocaleString('vi-VN')} ₫</span>
+                              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{item.val.toLocaleString('vi-VN') + '\u00a0₫'}</span>
                               <div
                                 style={{
                                   width: '100%',
@@ -1039,7 +1039,7 @@ export default function AdminPortal({
                                   </div>
                                 </td>
                                 <td style={{ textAlign: 'center', fontWeight: 700 }}>{p.totalQuantitySold}</td>
-                                <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{p.totalRevenue.toLocaleString('vi-VN')} ₫</td>
+                                <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{p.totalRevenue.toLocaleString('vi-VN') + '\u00a0₫'}</td>
                               </tr>
                             ))
                           )}
@@ -1071,7 +1071,7 @@ export default function AdminPortal({
                                   </div>
                                 </td>
                                 <td style={{ textAlign: 'center', fontWeight: 700 }}>{c.totalOrders} đơn</td>
-                                <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{c.totalSpent.toLocaleString('vi-VN')} ₫</td>
+                                <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{c.totalSpent.toLocaleString('vi-VN') + '\u00a0₫'}</td>
                               </tr>
                             ))
                           )}
@@ -1173,7 +1173,7 @@ export default function AdminPortal({
                           </div>
                         </div>
                       </td>
-                      <td style={{ fontWeight: 600, color: 'var(--primary)' }}>{prod.price.toLocaleString('vi-VN')} ₫</td>
+                      <td style={{ fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{prod.price.toLocaleString('vi-VN') + '\u00a0₫'}</td>
                       <td>
                         <span style={{ fontWeight: 700, color: prod.inventory < 5 ? '#c62828' : 'inherit' }}>{prod.inventory} cái</span>
                         {prod.inventory < 5 && <span style={{ color: '#c62828', fontSize: '10px', marginLeft: '6px', fontWeight: 700 }}>(Sắp hết!)</span>}
@@ -1584,7 +1584,7 @@ export default function AdminPortal({
                             ))}
                           </div>
                         </td>
-                        <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{order.totalPrice.toLocaleString('vi-VN')} ₫</td>
+                        <td style={{ fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{order.totalPrice.toLocaleString('vi-VN') + '\u00a0₫'}</td>
                         <td>
                           <div style={{ display: 'flex', flexDirection: 'column', fontSize: '12px' }}>
                             <strong>{order.paymentMethod}</strong>

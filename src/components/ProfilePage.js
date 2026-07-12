@@ -634,8 +634,8 @@ export default function ProfilePage({
                             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                               <div style={{ textAlign: 'right' }}>
                                 <div style={{ fontSize: '11px', color: 'var(--secondary-muted)' }}>Tổng thanh toán</div>
-                                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary)', marginTop: '2px' }}>
-                                  {order.totalPrice.toLocaleString('vi-VN')} ₫
+                                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary)', marginTop: '2px', whiteSpace: 'nowrap' }}>
+                                  {order.totalPrice.toLocaleString('vi-VN') + '\u00a0₫'}
                                 </div>
                               </div>
                               
@@ -787,12 +787,12 @@ export default function ProfilePage({
                                           <div style={{ fontSize: '11px', color: 'var(--secondary-muted)', marginTop: '2px' }}>
                                             Size: <strong>{item.selectedSize}</strong> / Màu: <strong>{item.selectedColor.name}</strong>
                                           </div>
-                                          <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--secondary-muted)', marginTop: '4px' }}>
-                                            {item.quantity} x {item.price.toLocaleString('vi-VN')} ₫
+                                          <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--secondary-muted)', marginTop: '4px', whiteSpace: 'nowrap' }}>
+                                            {item.quantity} x {item.price.toLocaleString('vi-VN') + '\u00a0₫'}
                                           </div>
                                         </div>
-                                        <div style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--secondary)' }}>
-                                          {(item.quantity * item.price).toLocaleString('vi-VN')} ₫
+                                        <div style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--secondary)', whiteSpace: 'nowrap' }}>
+                                          {(item.quantity * item.price).toLocaleString('vi-VN') + '\u00a0₫'}
                                         </div>
                                       </div>
                                     ))}

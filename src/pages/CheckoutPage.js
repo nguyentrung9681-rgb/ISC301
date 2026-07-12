@@ -167,7 +167,7 @@ export default function CheckoutPage({
               style={{ marginTop: '30px', padding: '16px', opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Đang xử lý đặt hàng...' : `Xác Nhận Đặt Hàng (${cartFinalPrice.toLocaleString('vi-VN')} ₫)`}
+              {isSubmitting ? 'Đang xử lý đặt hàng...' : `Xác Nhận Đặt Hàng (${cartFinalPrice.toLocaleString('vi-VN') + '\u00a0₫'})`}
             </button>
           </form>
         </div>
@@ -186,11 +186,11 @@ export default function CheckoutPage({
                     Size: {item.selectedSize} / {item.selectedColor.name}
                   </div>
                   <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--secondary-muted)', marginTop: '2px' }}>
-                    {item.quantity} x {item.price.toLocaleString('vi-VN')} ₫
+                    {item.quantity} x {item.price.toLocaleString('vi-VN') + '\u00a0₫'}
                   </div>
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)' }}>
-                  {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>
+                  {(item.price * item.quantity).toLocaleString('vi-VN') + '\u00a0₫'}
                 </div>
               </div>
             ))}
@@ -198,21 +198,21 @@ export default function CheckoutPage({
 
           <div className="summary-row">
             <span>Tạm tính</span>
-            <span>{cartTotalPrice.toLocaleString('vi-VN')} ₫</span>
+            <span style={{ whiteSpace: 'nowrap' }}>{cartTotalPrice.toLocaleString('vi-VN') + '\u00a0₫'}</span>
           </div>
           <div className="summary-row">
             <span>Phí ship</span>
-            <span>{shipFee === 0 ? "Miễn phí" : "30.000 ₫"}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>{shipFee === 0 ? "Miễn phí" : "30.000\u00a0₫"}</span>
           </div>
           {appliedVoucher && (
             <div className="summary-row" style={{ color: '#2e7d32' }}>
               <span>Giảm giá ({appliedVoucher.discountPercent}%)</span>
-              <span>-{voucherDiscount.toLocaleString('vi-VN')} ₫</span>
+              <span style={{ whiteSpace: 'nowrap' }}>-{voucherDiscount.toLocaleString('vi-VN') + '\u00a0₫'}</span>
             </div>
           )}
           <div className="summary-row total-row">
             <span>Tổng tiền</span>
-            <span className="total-price-text">{cartFinalPrice.toLocaleString('vi-VN')} ₫</span>
+            <span className="total-price-text" style={{ whiteSpace: 'nowrap' }}>{cartFinalPrice.toLocaleString('vi-VN') + '\u00a0₫'}</span>
           </div>
         </div>
       </div>

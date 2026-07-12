@@ -302,12 +302,12 @@ export default function FlashSale({ products, onSelectProduct, onAddToCart }) {
                   </h4>
 
                   {/* Prices */}
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px', whiteSpace: 'nowrap' }}>
                     <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary)' }}>
-                      {prod.price.toLocaleString('vi-VN')} ₫
+                      {prod.price.toLocaleString('vi-VN') + '\u00a0₫'}
                     </span>
                     <span style={{ fontSize: '12px', textDecoration: 'line-through', color: 'rgba(255,255,255,0.4)' }}>
-                      {displayOriginal.toLocaleString('vi-VN')} ₫
+                      {displayOriginal.toLocaleString('vi-VN') + '\u00a0₫'}
                     </span>
                   </div>
 

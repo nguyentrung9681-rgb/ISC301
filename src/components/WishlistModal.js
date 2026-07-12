@@ -12,7 +12,7 @@ export default function WishlistModal({
   if (!isOpen) return null;
 
   const formatPrice = (val) => {
-    return val.toLocaleString('vi-VN') + ' ₫';
+    return val.toLocaleString('vi-VN') + '\u00a0₫';
   };
 
   const handleQuickAddToCart = (e, item) => {

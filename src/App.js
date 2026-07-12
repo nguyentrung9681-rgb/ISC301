@@ -1342,8 +1342,8 @@ export default function App() {
                           </div>
                         </div>
 
-                        <div className="cart-item-price-unit">
-                          {item.price.toLocaleString('vi-VN')} ₫
+                        <div className="cart-item-price-unit" style={{ whiteSpace: 'nowrap' }}>
+                          {item.price.toLocaleString('vi-VN') + '\u00a0₫'}
                         </div>
 
                         {/* Qty changer */}
@@ -1353,8 +1353,8 @@ export default function App() {
                           <button className="qty-btn" onClick={() => handleUpdateCartQty(idx, 1)}>+</button>
                         </div>
 
-                        <div className="cart-item-total">
-                          {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
+                        <div className="cart-item-total" style={{ whiteSpace: 'nowrap' }}>
+                          {(item.price * item.quantity).toLocaleString('vi-VN') + '\u00a0₫'}
                         </div>
 
                         <button className="cart-item-remove" onClick={() => handleRemoveCartItem(idx)}>
@@ -1373,7 +1373,7 @@ export default function App() {
 
                   <div className="summary-row">
                     <span>Tạm tính</span>
-                    <span style={{ color: 'var(--secondary)', fontWeight: 600 }}>{cartTotalPrice.toLocaleString('vi-VN')} ₫</span>
+                    <span style={{ color: 'var(--secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{cartTotalPrice.toLocaleString('vi-VN') + '\u00a0₫'}</span>
                   </div>
 
                   <div className="summary-row">
@@ -1386,7 +1386,7 @@ export default function App() {
                   {appliedVoucher && (
                     <div className="summary-row" style={{ color: '#2e7d32' }}>
                       <span>Giảm giá ({appliedVoucher.discountPercent}%)</span>
-                      <span style={{ fontWeight: 600 }}>-{voucherDiscount.toLocaleString('vi-VN')} ₫</span>
+                      <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>-{voucherDiscount.toLocaleString('vi-VN') + '\u00a0₫'}</span>
                     </div>
                   )}
 
@@ -1396,7 +1396,7 @@ export default function App() {
                     </div>
                   ) : (
                     <div style={{ fontSize: '11px', color: '#ff8f00', background: '#fff8e1', padding: '6px 10px', borderRadius: '4px', marginBottom: '16px', fontWeight: 500 }}>
-                      💡 Mua thêm <strong>{(500000 - cartTotalPrice).toLocaleString('vi-VN')} ₫</strong> để được miễn phí vận chuyển!
+                       💡 Mua thêm <strong style={{ whiteSpace: 'nowrap' }}>{(500000 - cartTotalPrice).toLocaleString('vi-VN') + '\u00a0₫'}</strong> để được miễn phí vận chuyển!
                     </div>
                   )}
 
@@ -1434,7 +1434,7 @@ export default function App() {
 
                   <div className="summary-row total-row">
                     <span>Tổng cộng</span>
-                    <span className="total-price-text">{cartFinalPrice.toLocaleString('vi-VN')} ₫</span>
+                    <span className="total-price-text" style={{ whiteSpace: 'nowrap' }}>{cartFinalPrice.toLocaleString('vi-VN') + '\u00a0₫'}</span>
                   </div>
 
                   <button className="checkout-action-btn" onClick={() => setCurrentPage('checkout')}>
@@ -1698,8 +1698,8 @@ export default function App() {
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '13px', color: 'var(--secondary-muted)' }}>Tổng thanh toán:</div>
-                        <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--primary)' }}>
-                          {matchedOrder.totalPrice.toLocaleString('vi-VN')} ₫
+                        <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--primary)', whiteSpace: 'nowrap' }}>
+                          {matchedOrder.totalPrice.toLocaleString('vi-VN') + '\u00a0₫'}
                         </div>
                       </div>
                     </div>
@@ -1850,8 +1850,8 @@ export default function App() {
                                 <div style={{ fontSize: '13px', fontWeight: 600 }}>{item.name}</div>
                                 <div style={{ fontSize: '11px', color: 'var(--secondary-muted)' }}>Size: {item.selectedSize} / {item.selectedColor.name}</div>
                               </div>
-                              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--secondary-muted)' }}>
-                                {item.quantity} x {item.price.toLocaleString('vi-VN')} ₫
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--secondary-muted)', whiteSpace: 'nowrap' }}>
+                                {item.quantity} x {item.price.toLocaleString('vi-VN') + '\u00a0₫'}
                               </div>
                             </div>
                           ))}

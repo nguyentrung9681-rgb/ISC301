@@ -21,7 +21,7 @@ export default function ProductCard({ product, onSelectProduct, onAddToCart, sho
     : 0;
 
   const formatPrice = (val) => {
-    return val.toLocaleString('vi-VN') + ' ₫';
+    return val.toLocaleString('vi-VN') + '\u00a0₫';
   };
 
   const handleCartClick = (e) => {
