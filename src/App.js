@@ -53,7 +53,12 @@ export default function App() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [cart, setCart] = useState([]);
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrdersState] = useState([]);
+  const setOrders = (ordersList) => {
+    const list = Array.isArray(ordersList) ? ordersList : [];
+    const sorted = [...list].sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+    setOrdersState(sorted);
+  };
 
 
   // --- AUTHENTICATION MOCK ACCOUNTS ---
