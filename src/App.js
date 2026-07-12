@@ -397,6 +397,11 @@ export default function App() {
 
   // --- WISHLIST / FAVORITES HANDLERS ---
   const handleToggleWishlist = async (product) => {
+    if (!currentUser) {
+      setShowLoginModal(true);
+      addToast("Vui lòng đăng nhập để thực hiện chức năng này!", "warning");
+      return;
+    }
     try {
       const matchedItem = wishlist.find((item) => item.id === product.id);
       if (matchedItem?.cartItemId) {
@@ -405,7 +410,7 @@ export default function App() {
         await api.addToWishlist(product.id);
       }
     } catch (err) {
-      addToast(err.message || 'Lá»—i cáº­p nháº­t danh sĂ¡ch yĂªu thĂ­ch', 'error');
+      addToast(err.message || 'Lỗi cập nhật danh sách yêu thích', 'error');
       return;
     }
 

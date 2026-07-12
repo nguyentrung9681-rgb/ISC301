@@ -85,12 +85,15 @@ export const normalizeProduct = (product) => {
   const category = product?.category || 'ao';
   const numericPrice = Number(product?.price || 0);
   const numericRating = Number(product?.ratingAverage || 0);
+  const isClothing = ['ao', 'quan', 'vay'].includes(category);
   const normalizedSizes =
     Array.isArray(product?.sizes) && product.sizes.length > 0
       ? product.sizes
       : product?.size
         ? [product.size]
-        : ['S', 'M', 'L', 'XL'];
+        : isClothing
+          ? ['S', 'M', 'L', 'XL']
+          : [];
   const normalizedColors =
     Array.isArray(product?.colors) && product.colors.length > 0
       ? product.colors.map((color) =>
