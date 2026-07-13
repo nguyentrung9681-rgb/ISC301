@@ -1,7 +1,7 @@
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
 export const resolveImageUrl = (url) => {
-  if (!url) return 'https://via.placeholder.com/400x500';
+  if (!url) return 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600';
   
   let cleanUrl = url.trim();
   
@@ -18,7 +18,7 @@ export const resolveImageUrl = (url) => {
 };
 
 export const parseImages = (imgUrl) => {
-  if (!imgUrl) return ['https://via.placeholder.com/400x500'];
+  if (!imgUrl) return ['https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600'];
   try {
     const parsed = JSON.parse(imgUrl);
     if (Array.isArray(parsed) && parsed.length > 0) {
@@ -187,7 +187,7 @@ export const normalizeOrder = (order) => {
           name: item?.productName || product?.name || item?.name || 'Sản phẩm',
           quantity: Number(item?.quantity || 1),
           price: Number(item?.price || 0),
-          images: product?.images || ['https://via.placeholder.com/400x500'],
+          images: product?.images || (item?.imageUrl ? parseImages(item.imageUrl) : ['https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600']),
           selectedSize: item?.selectedSize || 'M',
           selectedColor: item?.selectedColor || { name: 'Mặc định', hex: '#000' }
         };
