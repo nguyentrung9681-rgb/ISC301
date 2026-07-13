@@ -1,10 +1,31 @@
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+
+const resolveImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/400x500';
+  
+  let cleanUrl = url.trim();
+  
+  // If it starts with local host, replace it with the configured backend BASE_URL in production
+  if (cleanUrl.startsWith('http://localhost:8080/')) {
+    cleanUrl = cleanUrl.replace('http://localhost:8080/', `${BASE_URL.replace(/\/$/, '')}/`);
+  } else if (cleanUrl.startsWith('/uploads/')) {
+    cleanUrl = `${BASE_URL.replace(/\/$/, '')}${cleanUrl}`;
+  } else if (cleanUrl.startsWith('uploads/')) {
+    cleanUrl = `${BASE_URL.replace(/\/$/, '')}/${cleanUrl}`;
+  }
+  
+  return cleanUrl;
+};
+
 export const parseImages = (imgUrl) => {
   if (!imgUrl) return ['https://via.placeholder.com/400x500'];
   try {
     const parsed = JSON.parse(imgUrl);
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map(resolveImageUrl);
+    }
   } catch (e) { }
-  return [imgUrl];
+  return [resolveImageUrl(imgUrl)];
 };
 
 export const categoryLabelMap = {
