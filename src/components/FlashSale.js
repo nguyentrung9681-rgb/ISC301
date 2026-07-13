@@ -204,14 +204,9 @@ export default function FlashSale({ products, onSelectProduct, onAddToCart }) {
 
             const handleAddToCartClick = (e) => {
               e.stopPropagation();
-              const selectedSize = prod.sizes && prod.sizes.length > 0 ? prod.sizes[0] : "M";
-              const selectedColor = prod.colors && prod.colors.length > 0 ? prod.colors[0] : { name: "Mặc định", hex: "#ccc" };
-              onAddToCart({
-                ...prod,
-                selectedSize,
-                selectedColor,
-                quantity: 1
-              });
+              if (onSelectProduct) {
+                onSelectProduct(prod);
+              }
             };
 
             return (

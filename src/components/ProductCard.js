@@ -26,16 +26,9 @@ export default function ProductCard({ product, onSelectProduct, onAddToCart, sho
 
   const handleCartClick = (e) => {
     e.stopPropagation();
-    // Mặc định chọn size đầu tiên và màu đầu tiên khi add nhanh vào giỏ
-    const selectedSize = sizes && sizes.length > 0 ? sizes[0] : "One Size";
-    const selectedColor = colors && colors.length > 0 ? colors[0] : { name: "Mặc định", hex: "#ccc" };
-    
-    onAddToCart({
-      ...product,
-      selectedSize,
-      selectedColor,
-      quantity: 1
-    });
+    if (onSelectProduct) {
+      onSelectProduct(product);
+    }
   };
 
   return (

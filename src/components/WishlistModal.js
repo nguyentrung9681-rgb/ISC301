@@ -17,16 +17,9 @@ export default function WishlistModal({
 
   const handleQuickAddToCart = (e, item) => {
     e.stopPropagation();
-    // Default to first size and color
-    const selectedSize = item.sizes && item.sizes.length > 0 ? item.sizes[0] : "One Size";
-    const selectedColor = item.colors && item.colors.length > 0 ? item.colors[0] : { name: "Mặc định", hex: "#ccc" };
-    
-    onAddToCart({
-      ...item,
-      selectedSize,
-      selectedColor,
-      quantity: 1
-    });
+    if (onSelectProduct) {
+      onSelectProduct(item);
+    }
   };
 
   return (
