@@ -192,7 +192,7 @@ export const normalizeOrder = (order) => {
   return {
     ...order,
     id: order?.id,
-    customerName: order?.customerName || order?.user?.fullName || 'Khách hàng',
+    customerName: order?.receiverName || order?.customerName || order?.user?.fullName || 'Khách hàng',
     phone: order?.phone || order?.phoneNumber || '',
     address: order?.address || order?.shippingAddress || '',
     totalPrice: Number(order?.totalPrice ?? order?.totalAmount ?? 0),

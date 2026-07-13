@@ -595,9 +595,9 @@ export default function App() {
 
       let order;
       if (appliedVoucher) {
-        order = await api.checkoutWithVoucher(address.trim(), phone.trim(), pm, appliedVoucher.code);
+        order = await api.checkoutWithVoucher(name.trim(), address.trim(), phone.trim(), pm, appliedVoucher.code);
       } else {
-        order = await api.checkout(address.trim(), phone.trim(), pm);
+        order = await api.checkout(name.trim(), address.trim(), phone.trim(), pm);
       }
 
       setLastOrderId(order.id);

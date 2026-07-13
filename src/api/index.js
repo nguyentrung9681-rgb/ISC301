@@ -246,17 +246,17 @@ export const api = {
       method: "DELETE",
     }),
 
-  checkout: (address, phone, paymentMethod) =>
+  checkout: (name, address, phone, paymentMethod) =>
     apiFetch(
-      `/api/client/order/checkout?address=${encodeURIComponent(address)}&phone=${encodeURIComponent(
+      `/api/client/order/checkout?receiverName=${encodeURIComponent(name)}&address=${encodeURIComponent(address)}&phone=${encodeURIComponent(
         phone
       )}&paymentMethod=${encodeURIComponent(paymentMethod)}`,
       { method: "POST" }
     ),
 
-  checkoutWithVoucher: (address, phone, paymentMethod, voucherCode) =>
+  checkoutWithVoucher: (name, address, phone, paymentMethod, voucherCode) =>
     apiFetch(
-      `/api/client/order/checkout-with-voucher?address=${encodeURIComponent(
+      `/api/client/order/checkout-with-voucher?receiverName=${encodeURIComponent(name)}&address=${encodeURIComponent(
         address
       )}&phone=${encodeURIComponent(phone)}&paymentMethod=${encodeURIComponent(
         paymentMethod
