@@ -55,9 +55,11 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [orders, setOrdersState] = useState([]);
   const setOrders = (ordersList) => {
-    const list = Array.isArray(ordersList) ? ordersList : [];
-    const sorted = [...list].sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
-    setOrdersState(sorted);
+    setOrdersState(prevOrders => {
+      const resolvedList = typeof ordersList === 'function' ? ordersList(prevOrders) : ordersList;
+      const list = Array.isArray(resolvedList) ? resolvedList : [];
+      return [...list].sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+    });
   };
 
 
