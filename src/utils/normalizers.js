@@ -1,6 +1,6 @@
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
-const resolveImageUrl = (url) => {
+export const resolveImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/400x500';
   
   let cleanUrl = url.trim();

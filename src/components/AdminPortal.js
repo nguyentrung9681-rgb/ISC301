@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api';
 import Pagination from './Pagination';
-import { normalizeUser } from '../utils/normalizers';
+import { normalizeUser, resolveImageUrl } from '../utils/normalizers';
 
 const PRESET_SIZES = ['S', 'M', 'L', 'XL', 'Free Size'];
 const PRESET_COLORS = [
@@ -1057,7 +1057,7 @@ export default function AdminPortal({
                               <tr key={p.productId}>
                                 <td>
                                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                    <img src={p.imageUrl} alt="" style={{ width: '30px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
+                                    <img src={resolveImageUrl(p.imageUrl)} alt="" style={{ width: '30px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
                                     <div style={{ fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }} title={p.productName}>{p.productName}</div>
                                   </div>
                                 </td>
@@ -1129,7 +1129,7 @@ export default function AdminPortal({
                               <tr key={p.productId}>
                                 <td>
                                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                    <img src={p.imageUrl} alt="" style={{ width: '30px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
+                                    <img src={resolveImageUrl(p.imageUrl)} alt="" style={{ width: '30px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-light)' }} />
                                     <div style={{ fontWeight: 600 }}>{p.productName}</div>
                                   </div>
                                 </td>
