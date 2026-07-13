@@ -8,7 +8,8 @@ export default function CheckoutPage({
   voucherDiscount,
   cartFinalPrice,
   onPlaceOrder,
-  currentUser
+  currentUser,
+  showAlert
 }) {
   // --- CHECKOUT FORM STATE ---
   const [name, setName] = useState('');
@@ -35,9 +36,20 @@ export default function CheckoutPage({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    const cleanedPhone = phone.trim();
+    if (cleanedPhone.length !== 10) {
+      if (showAlert) {
+        showAlert('SỐ ĐIỆN THOẠI SAI', 'Số điện thoại liên lạc phải có đúng 10 chữ số!', 'warning');
+      } else {
+        alert('Số điện thoại liên lạc phải có đúng 10 chữ số!');
+      }
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await onPlaceOrder({ name, phone, address, note, paymentMethod });
+      await onPlaceOrder({ name, phone: cleanedPhone, address, note, paymentMethod });
     } catch (err) {
       console.error(err);
     } finally {
@@ -78,7 +90,12 @@ export default function CheckoutPage({
                   placeholder="Ví dụ: 0987654321..."
                   className="checkout-input"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    if (value.length <= 10) {
+                      setPhone(value);
+                    }
+                  }}
                   required
                 />
               </div>
