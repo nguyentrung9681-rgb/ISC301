@@ -53,6 +53,7 @@ export default function App() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [cart, setCart] = useState([]);
+  const [selectedCartItemIds, setSelectedCartItemIds] = useState([]);
   const [orders, setOrdersState] = useState([]);
   const setOrders = (ordersList) => {
     setOrdersState(prevOrders => {
@@ -500,7 +501,20 @@ export default function App() {
     try {
       const cartRes = await api.getCart();
       const rawCart = Array.isArray(cartRes) ? cartRes : [];
-      setCart(rawCart.map(normalizeCartItem));
+      const normalized = rawCart.map(normalizeCartItem);
+      setCart(normalized);
+      setSelectedCartItemIds(prev => {
+        const existingIds = normalized.map(item => item.cartItemId);
+        if (prev.length === 0) {
+          return existingIds;
+        } else {
+          // Keep existing selections, auto-select newly added items, filter out deleted items
+          const prevCartIds = cart.map(item => item.cartItemId);
+          const newIds = existingIds.filter(id => !prevCartIds.includes(id));
+          const filteredPrev = prev.filter(id => existingIds.includes(id));
+          return [...filteredPrev, ...newIds];
+        }
+      });
     } catch (err) {
       console.error('Error refreshing cart:', err);
     }
@@ -609,8 +623,8 @@ export default function App() {
 
   // --- PLACE ORDER FLOW ---
   const handlePlaceOrder = async ({ name, phone, address, note, paymentMethod }) => {
-    if (cart.length === 0) {
-      showAlert('GIỎ HÀNG TRỐNG', 'Giỏ hàng đang trống! Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt hàng.', 'warning');
+    if (selectedCartItems.length === 0) {
+      showAlert('CHƯA CHỌN SẢN PHẨM', 'Vui lòng chọn ít nhất một sản phẩm trong giỏ hàng để thanh toán.', 'warning');
       return;
     }
     if (!name.trim() || !phone.trim() || !address.trim()) {
@@ -624,10 +638,11 @@ export default function App() {
       setLastOrderPaymentMethod(paymentMethod);
 
       let order;
+      const selectedIds = selectedCartItems.map(item => item.cartItemId);
       if (appliedVoucher) {
-        order = await api.checkoutWithVoucher(name.trim(), address.trim(), phone.trim(), pm, appliedVoucher.code);
+        order = await api.checkoutWithVoucher(name.trim(), address.trim(), phone.trim(), pm, appliedVoucher.code, selectedIds);
       } else {
-        order = await api.checkout(name.trim(), address.trim(), phone.trim(), pm);
+        order = await api.checkout(name.trim(), address.trim(), phone.trim(), pm, selectedIds);
       }
 
       setLastOrderId(order.id);
@@ -875,7 +890,24 @@ export default function App() {
 
 
 
-  const cartTotalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const toggleSelectCartItem = (cartItemId) => {
+    setSelectedCartItemIds(prev =>
+      prev.includes(cartItemId)
+        ? prev.filter(id => id !== cartItemId)
+        : [...prev, cartItemId]
+    );
+  };
+
+  const toggleSelectAllCartItems = () => {
+    if (selectedCartItemIds.length === cart.length) {
+      setSelectedCartItemIds([]);
+    } else {
+      setSelectedCartItemIds(cart.map(item => item.cartItemId));
+    }
+  };
+
+  const selectedCartItems = cart.filter(item => selectedCartItemIds.includes(item.cartItemId));
+  const cartTotalPrice = selectedCartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const isFreeShip = cartTotalPrice >= 500000;
   const shipFee = cartTotalPrice > 0 ? (isFreeShip ? 0 : 30000) : 0;
   const voucherDiscount = appliedVoucher ? (cartTotalPrice * appliedVoucher.discountPercent / 100) : 0;
@@ -1364,10 +1396,43 @@ export default function App() {
                     </button>
                   </div>
                 ) : (
-                  <div className="cart-items-list">
-                    {cart.map((item, idx) => (
-                      <div key={idx} className="cart-item">
-                        <img src={item.images[0]} alt={item.name} className="cart-item-img" />
+                  <>
+                    <div className="cart-select-all-bar" style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      paddingBottom: '16px',
+                      marginBottom: '20px',
+                      borderBottom: '1px solid var(--border-light)',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: 'var(--secondary)'
+                    }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          className="cart-item-checkbox" 
+                          checked={cart.length > 0 && selectedCartItemIds.length === cart.length} 
+                          onChange={toggleSelectAllCartItems}
+                        />
+                        <span>Chọn tất cả ({cart.length} sản phẩm)</span>
+                      </label>
+                      {selectedCartItemIds.length > 0 && (
+                        <span style={{ color: 'var(--primary)', fontWeight: '600' }}>
+                          Đã chọn {selectedCartItemIds.length} sản phẩm
+                        </span>
+                      )}
+                    </div>
+                    <div className="cart-items-list">
+                      {cart.map((item, idx) => (
+                        <div key={idx} className="cart-item">
+                          <input 
+                            type="checkbox" 
+                            className="cart-item-checkbox" 
+                            checked={selectedCartItemIds.includes(item.cartItemId)}
+                            onChange={() => toggleSelectCartItem(item.cartItemId)}
+                          />
+                          <img src={item.images[0]} alt={item.name} className="cart-item-img" />
 
                         <div className="cart-item-info">
                           <h4 className="cart-item-name">{item.name}</h4>
@@ -1402,6 +1467,7 @@ export default function App() {
                       </div>
                     ))}
                   </div>
+                  </>
                 )}
               </div>
 
@@ -1491,7 +1557,7 @@ export default function App() {
            ========================================================================= */}
         {!isAdminMode && currentPage === 'checkout' && (
           <CheckoutPage
-            cart={cart}
+            cart={selectedCartItems}
             cartTotalPrice={cartTotalPrice}
             shipFee={shipFee}
             appliedVoucher={appliedVoucher}

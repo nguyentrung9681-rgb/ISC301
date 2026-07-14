@@ -246,23 +246,27 @@ export const api = {
       method: "DELETE",
     }),
 
-  checkout: (name, address, phone, paymentMethod) =>
-    apiFetch(
+  checkout: (name, address, phone, paymentMethod, cartItemIds = []) => {
+    const idsQuery = cartItemIds && cartItemIds.length > 0 ? `&cartItemIds=${cartItemIds.join(',')}` : '';
+    return apiFetch(
       `/api/client/order/checkout?receiverName=${encodeURIComponent(name)}&address=${encodeURIComponent(address)}&phone=${encodeURIComponent(
         phone
-      )}&paymentMethod=${encodeURIComponent(paymentMethod)}`,
+      )}&paymentMethod=${encodeURIComponent(paymentMethod)}${idsQuery}`,
       { method: "POST" }
-    ),
+    );
+  },
 
-  checkoutWithVoucher: (name, address, phone, paymentMethod, voucherCode) =>
-    apiFetch(
+  checkoutWithVoucher: (name, address, phone, paymentMethod, voucherCode, cartItemIds = []) => {
+    const idsQuery = cartItemIds && cartItemIds.length > 0 ? `&cartItemIds=${cartItemIds.join(',')}` : '';
+    return apiFetch(
       `/api/client/order/checkout-with-voucher?receiverName=${encodeURIComponent(name)}&address=${encodeURIComponent(
         address
       )}&phone=${encodeURIComponent(phone)}&paymentMethod=${encodeURIComponent(
         paymentMethod
-      )}&voucherCode=${encodeURIComponent(voucherCode)}`,
+      )}&voucherCode=${encodeURIComponent(voucherCode)}${idsQuery}`,
       { method: "POST" }
-    ),
+    );
+  },
 
   getOrderHistory: () => apiFetch("/api/client/order/history"),
 
