@@ -205,6 +205,11 @@ export default function AdminPortal({
   const [userSearch, setUserSearch] = useState('');
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [showCreateStaffModal, setShowCreateStaffModal] = useState(false);
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
+
+  useEffect(() => {
+    setUsersPage(1);
+  }, [userRoleFilter]);
 
   // Pagination States
   const [productsPage, setProductsPage] = useState(1);
@@ -411,11 +416,18 @@ export default function AdminPortal({
     return sortedOrders.slice((ordersPage - 1) * ordersPageSize, ordersPage * ordersPageSize);
   }, [sortedOrders, ordersPage]);
 
+  const filteredUsers = useMemo(() => {
+    return users.filter(u => {
+      if (userRoleFilter === 'all') return true;
+      return u.role === userRoleFilter;
+    });
+  }, [users, userRoleFilter]);
+
   const usersPageSize = 5;
-  const totalUsersPages = Math.ceil(users.length / usersPageSize);
+  const totalUsersPages = Math.ceil(filteredUsers.length / usersPageSize);
   const paginatedUsers = useMemo(() => {
-    return users.slice((usersPage - 1) * usersPageSize, usersPage * usersPageSize);
-  }, [users, usersPage]);
+    return filteredUsers.slice((usersPage - 1) * usersPageSize, usersPage * usersPageSize);
+  }, [filteredUsers, usersPage]);
 
   useEffect(() => {
     fetchCategories();
@@ -1892,6 +1904,39 @@ export default function AdminPortal({
               </button>
             </form>
 
+            {/* Role Filter Tabs */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              {[
+                { value: 'all', label: 'Tất cả' },
+                { value: 'manager', label: 'Quản lý' },
+                { value: 'staff', label: 'Nhân viên' },
+                { value: 'customer', label: 'Khách hàng (Buyer)' }
+              ].map((roleOpt) => {
+                const isActive = userRoleFilter === roleOpt.value;
+                return (
+                  <button
+                    key={roleOpt.value}
+                    type="button"
+                    onClick={() => setUserRoleFilter(roleOpt.value)}
+                    style={{
+                      padding: '6px 16px',
+                      borderRadius: '20px',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      border: isActive ? '1px solid var(--primary)' : '1px solid var(--border-light)',
+                      background: isActive ? 'var(--primary-gradient)' : '#fff',
+                      color: isActive ? '#fff' : 'var(--secondary-muted)',
+                      boxShadow: isActive ? '0 4px 10px rgba(255, 87, 34, 0.2)' : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {roleOpt.label}
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Users Table */}
             {isUsersLoading ? (
               <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--secondary-muted)' }}>
@@ -1912,7 +1957,7 @@ export default function AdminPortal({
                   </tr>
                 </thead>
                 <tbody>
-                  {users.length === 0 ? (
+                  {filteredUsers.length === 0 ? (
                     <tr>
                       <td colSpan="6" style={{ textAlign: 'center', padding: '30px 0', color: 'var(--secondary-muted)' }}>
                         Không tìm thấy người dùng nào!
