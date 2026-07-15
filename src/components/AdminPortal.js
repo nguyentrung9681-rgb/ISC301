@@ -260,6 +260,7 @@ export default function AdminPortal({
       const keyword = userSearch.trim();
       const res = keyword ? await api.searchUsers(keyword) : await api.getUsers();
       setUsers((Array.isArray(res) ? res : []).map(normalizeUser));
+      setUsersPage(1);
     } catch (error) {
       console.error("Lỗi tìm kiếm người dùng:", error);
     } finally {
@@ -359,6 +360,7 @@ export default function AdminPortal({
       fetchVouchers();
     } else if (activeMenu === 'users-management' && currentRole === 'manager') {
       fetchUsers();
+      setUsersPage(1);
     }
   }, [activeMenu, currentRole]);
 
@@ -409,7 +411,7 @@ export default function AdminPortal({
     return sortedOrders.slice((ordersPage - 1) * ordersPageSize, ordersPage * ordersPageSize);
   }, [sortedOrders, ordersPage]);
 
-  const usersPageSize = 10;
+  const usersPageSize = 5;
   const totalUsersPages = Math.ceil(users.length / usersPageSize);
   const paginatedUsers = useMemo(() => {
     return users.slice((usersPage - 1) * usersPageSize, usersPage * usersPageSize);
@@ -702,7 +704,8 @@ export default function AdminPortal({
   const outOfStockCount = products.filter((p) => p.inventory < 5 && p.status === 'approved').length;
 
   return (
-    <div className="container admin-layout">
+    <>
+      <div className="container admin-layout">
       <div className="admin-sidebar animate-fade">
         <div className="role-badge-box">
           <span className="role-badge-title">Phân Quyền Hệ Thống</span>
@@ -2003,131 +2006,133 @@ export default function AdminPortal({
             </>
           )}
 
-            {/* Create Staff Modal */}
-            {showCreateStaffModal && (
-              <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0, 0, 0, 0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 1000,
-                backdropFilter: 'blur(4px)'
-              }}>
-                <div style={{
-                  background: 'white',
-                  borderRadius: 'var(--radius-lg)',
-                  width: '100%',
-                  maxWidth: '500px',
-                  padding: '24px',
-                  boxShadow: 'var(--shadow-lg)'
-                }} className="animate-fade">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800 }}>Tạo Tài Khoản Mới</h3>
-                    <button onClick={() => setShowCreateStaffModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>
-                      <X size={20} />
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleCreateStaffSubmit}>
-                    <div className="admin-form-group" style={{ marginBottom: '12px' }}>
-                      <label className="input-label">Vai trò tài khoản *</label>
-                      <select
-                        className="admin-input"
-                        value={staffRole}
-                        onChange={(e) => setStaffRole(e.target.value)}
-                        style={{ background: '#fff', cursor: 'pointer' }}
-                      >
-                        <option value="STAFF">Nhân viên (Staff)</option>
-                        <option value="MANAGER">Quản lý (Manager)</option>
-                        <option value="BUYER">Khách hàng (Buyer)</option>
-                      </select>
-                    </div>
-
-                    <div className="admin-form-group" style={{ marginBottom: '12px' }}>
-                      <label className="input-label">Email đăng nhập *</label>
-                      <input
-                        type="email"
-                        className="admin-input"
-                        placeholder="email@jusstlife.com"
-                        value={staffEmail}
-                        onChange={(e) => setStaffEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className="admin-form-group" style={{ marginBottom: '12px' }}>
-                      <label className="input-label">Mật khẩu *</label>
-                      <input
-                        type="password"
-                        className="admin-input"
-                        placeholder="Nhập mật khẩu cho nhân viên"
-                        value={staffPassword}
-                        onChange={(e) => setStaffPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className="admin-form-group" style={{ marginBottom: '12px' }}>
-                      <label className="input-label">Họ và tên nhân viên *</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        placeholder="Ví dụ: Nguyễn Văn A"
-                        value={staffFullName}
-                        onChange={(e) => setStaffFullName(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className="admin-form-group" style={{ marginBottom: '12px' }}>
-                      <label className="input-label">Số điện thoại</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        placeholder="Ví dụ: 0987654321"
-                        value={staffPhone}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, '');
-                          if (val.length <= 10) {
-                            setStaffPhone(val);
-                          }
-                        }}
-                      />
-                    </div>
-
-                    <div className="admin-form-group" style={{ marginBottom: '20px' }}>
-                      <label className="input-label">Địa chỉ</label>
-                      <input
-                        type="text"
-                        className="admin-input"
-                        placeholder="Ví dụ: Văn phòng Jusstlife"
-                        value={staffAddress}
-                        onChange={(e) => setStaffAddress(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="admin-form-actions">
-                      <button type="button" className="btn-admin-cancel" onClick={() => setShowCreateStaffModal(false)}>
-                        Hủy bỏ
-                      </button>
-                      <button type="submit" className="btn-admin-submit" disabled={isSavingStaff}>
-                        {isSavingStaff ? 'Đang tạo...' : 'Tạo Tài Khoản'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
 
-    </div>
+      {/* Create Staff Modal */}
+      {showCreateStaffModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: 'var(--radius-lg)',
+            width: '100%',
+            maxWidth: '640px',
+            padding: '28px',
+            boxShadow: 'var(--shadow-lg)'
+          }} className="animate-fade">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800 }}>Tạo Tài Khoản Mới</h3>
+              <button onClick={() => setShowCreateStaffModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateStaffSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                <div className="admin-form-group">
+                  <label className="input-label">Vai trò tài khoản *</label>
+                  <select
+                    className="admin-input"
+                    value={staffRole}
+                    onChange={(e) => setStaffRole(e.target.value)}
+                    style={{ background: '#fff', cursor: 'pointer' }}
+                  >
+                    <option value="STAFF">Nhân viên (Staff)</option>
+                    <option value="MANAGER">Quản lý (Manager)</option>
+                    <option value="BUYER">Khách hàng (Buyer)</option>
+                  </select>
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="input-label">Họ và tên nhân viên *</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    placeholder="Ví dụ: Nguyễn Văn A"
+                    value={staffFullName}
+                    onChange={(e) => setStaffFullName(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="input-label">Email đăng nhập *</label>
+                  <input
+                    type="email"
+                    className="admin-input"
+                    placeholder="email@jusstlife.com"
+                    value={staffEmail}
+                    onChange={(e) => setStaffEmail(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="input-label">Số điện thoại</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    placeholder="Ví dụ: 0987654321"
+                    value={staffPhone}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      if (val.length <= 10) {
+                        setStaffPhone(val);
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="input-label">Mật khẩu *</label>
+                  <input
+                    type="password"
+                    className="admin-input"
+                    placeholder="Nhập mật khẩu cho nhân viên"
+                    value={staffPassword}
+                    onChange={(e) => setStaffPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="input-label">Địa chỉ</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    placeholder="Ví dụ: Văn phòng Jusstlife"
+                    value={staffAddress}
+                    onChange={(e) => setStaffAddress(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="admin-form-actions" style={{ marginTop: 0 }}>
+                <button type="button" className="btn-admin-cancel" onClick={() => setShowCreateStaffModal(false)}>
+                  Hủy bỏ
+                </button>
+                <button type="submit" className="btn-admin-submit" disabled={isSavingStaff}>
+                  {isSavingStaff ? 'Đang tạo...' : 'Tạo Tài Khoản'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
