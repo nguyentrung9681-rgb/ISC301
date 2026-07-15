@@ -1672,7 +1672,7 @@ export default function AdminPortal({
                           </div>
                         </td>
                         <td>
-                          <span style={{ fontSize: '12px', fontWeight: 700, color: statusColor, background: `${statusColor}1A`, padding: '4px 8px', borderRadius: '4px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: statusColor, background: `${statusColor}1A`, padding: '4px 8px', borderRadius: '4px', whiteSpace: 'nowrap' }}>
                             {order.status}
                           </span>
                         </td>

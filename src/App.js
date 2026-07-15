@@ -2046,7 +2046,8 @@ export default function App() {
                                   borderRadius: '4px',
                                   background: statusBg,
                                   color: statusColor,
-                                  textTransform: 'uppercase'
+                                  textTransform: 'uppercase',
+                                  whiteSpace: 'nowrap'
                                 }}>
                                   {s}
                                 </span>

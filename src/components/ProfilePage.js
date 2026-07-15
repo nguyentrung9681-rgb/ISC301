@@ -612,7 +612,8 @@ export default function ProfilePage({
                                     padding: '3px 8px', 
                                     borderRadius: '12px',
                                     background: statusBg,
-                                    color: statusColor
+                                    color: statusColor,
+                                    whiteSpace: 'nowrap'
                                   }}>
                                     <StatusIcon size={12} />
                                     {order.status}
