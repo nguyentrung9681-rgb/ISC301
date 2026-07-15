@@ -2054,6 +2054,7 @@ export default function AdminPortal({
           </div>
         )}
       </div>
+    </div>
 
       {/* Create Staff Modal */}
       {showCreateStaffModal && (
