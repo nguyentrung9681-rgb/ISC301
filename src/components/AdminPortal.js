@@ -1952,12 +1952,12 @@ export default function AdminPortal({
                 <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Khách hàng / Nhân viên</th>
-                    <th>Thông tin liên hệ</th>
-                    <th>Địa chỉ</th>
-                    <th>Vai trò</th>
-                    <th>Trạng thái</th>
-                    <th style={{ textAlign: 'right' }}>Thao tác</th>
+                    <th style={{ width: '22%', whiteSpace: 'nowrap' }}>Khách hàng / Nhân viên</th>
+                    <th style={{ width: '22%', whiteSpace: 'nowrap' }}>Thông tin liên hệ</th>
+                    <th style={{ width: '22%', whiteSpace: 'nowrap' }}>Địa chỉ</th>
+                    <th style={{ width: '10%', whiteSpace: 'nowrap' }}>Vai trò</th>
+                    <th style={{ width: '10%', whiteSpace: 'nowrap' }}>Trạng thái</th>
+                    <th style={{ width: '14%', textAlign: 'right', whiteSpace: 'nowrap' }}>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1976,16 +1976,16 @@ export default function AdminPortal({
                               <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'var(--primary)' }}>
                                 {u.fullName ? u.fullName.charAt(0).toUpperCase() : 'U'}
                               </div>
-                              <span style={{ fontWeight: 600 }}>{u.fullName}</span>
+                              <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{u.fullName}</span>
                             </div>
                           </td>
                           <td>
                             <div style={{ fontSize: '12px' }}>
-                              <div>{u.email}</div>
+                              <div style={{ fontWeight: 500 }}>{u.email}</div>
                               <div style={{ color: 'var(--secondary-muted)' }}>{u.phone || 'Chưa cung cấp SĐT'}</div>
                             </div>
                           </td>
-                          <td style={{ fontSize: '12px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={u.address}>
+                          <td style={{ fontSize: '12px', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={u.address}>
                             {u.address || 'Chưa cung cấp'}
                           </td>
                           <td>
@@ -1993,10 +1993,12 @@ export default function AdminPortal({
                               fontSize: '11px',
                               fontWeight: 700,
                               textTransform: 'uppercase',
-                              padding: '2px 6px',
+                              padding: '4px 8px',
                               borderRadius: '4px',
                               background: u.role === 'manager' ? '#e8f5e9' : u.role === 'staff' ? '#fff3e0' : '#eceff1',
-                              color: u.role === 'manager' ? '#2e7d32' : u.role === 'staff' ? '#f57c00' : '#455a64'
+                              color: u.role === 'manager' ? '#2e7d32' : u.role === 'staff' ? '#f57c00' : '#455a64',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-block'
                             }}>
                               {u.role === 'manager' ? 'Quản lý' : u.role === 'staff' ? 'Nhân viên' : 'Buyer'}
                             </span>
@@ -2009,7 +2011,8 @@ export default function AdminPortal({
                               borderRadius: '4px',
                               background: u.accountStatus === 'ACTIVE' ? 'rgba(46, 125, 50, 0.08)' : 'rgba(198, 40, 40, 0.08)',
                               color: u.accountStatus === 'ACTIVE' ? '#2e7d32' : '#c62828',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              display: 'inline-block'
                             }}>
                               {u.accountStatus === 'ACTIVE' ? 'Hoạt động' : 'Đã khóa'}
                             </span>
@@ -2032,7 +2035,8 @@ export default function AdminPortal({
                                     color: 'var(--secondary)',
                                     fontWeight: 500,
                                     height: '32px',
-                                    boxSizing: 'border-box'
+                                    boxSizing: 'border-box',
+                                    width: '105px'
                                   }}
                                 >
                                   <option value="customer">Buyer</option>
@@ -2053,13 +2057,27 @@ export default function AdminPortal({
                                     justifyContent: 'center',
                                     boxSizing: 'border-box',
                                     padding: '0 12px',
-                                    whiteSpace: 'nowrap'
+                                    whiteSpace: 'nowrap',
+                                    width: '90px'
                                   }}
                                 >
                                   {u.accountStatus === 'ACTIVE' ? 'Khóa' : 'Mở khóa'}
                                 </button>
                               ) : (
-                                u.role === 'manager' && <span style={{ fontSize: '11px', color: 'var(--secondary-muted)', fontStyle: 'italic', paddingRight: '8px' }}>Không thể tác vụ</span>
+                                u.role === 'manager' && (
+                                  <span style={{ 
+                                    fontSize: '11px', 
+                                    color: 'var(--secondary-muted)', 
+                                    fontStyle: 'italic', 
+                                    paddingRight: '8px',
+                                    whiteSpace: 'nowrap',
+                                    display: 'inline-block',
+                                    width: '203px', // Matches 105px (select) + 8px (gap) + 90px (button) = 203px exactly!
+                                    textAlign: 'right'
+                                  }}>
+                                    Không thể tác vụ
+                                  </span>
+                                )
                               )}
                             </div>
                           </td>
