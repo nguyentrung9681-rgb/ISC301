@@ -155,7 +155,10 @@ export default function App() {
         }
 
         setProducts((Array.isArray(productsRes) ? productsRes : []).map(normalizeProduct));
-        setCart((Array.isArray(cartRes) ? cartRes : []).map(normalizeCartItem));
+        const hasPendingCart = localStorage.getItem('jusst_pending_cart');
+        if (!hasPendingCart) {
+          setCart((Array.isArray(cartRes) ? cartRes : []).map(normalizeCartItem));
+        }
         setWishlist((Array.isArray(wishlistRes) ? wishlistRes : []).map(normalizeCartItem));
         setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
       } catch (err) {
@@ -273,36 +276,47 @@ export default function App() {
       if (isSuccess) {
         addToast('Thanh toán đơn hàng thành công qua cổng PayOS!', 'success');
         localStorage.removeItem('jusst_pending_cart');
+        localStorage.removeItem('jusst_pending_order_id');
         setCurrentPage('profile'); // Chuyển đến trang cá nhân để xem lịch sử mua hàng
       } else if (isCancel) {
         addToast('Giao dịch thanh toán đã bị hủy hoặc không thành công. Giỏ hàng đã được khôi phục.', 'warning');
         // Restore cart from localStorage if exists
         const pendingCartStr = localStorage.getItem('jusst_pending_cart');
-        if (pendingCartStr) {
+        const pendingOrderId = localStorage.getItem('jusst_pending_order_id');
+
+        const restoreCart = async () => {
           try {
-            const pendingCart = JSON.parse(pendingCartStr);
-            if (Array.isArray(pendingCart) && pendingCart.length > 0) {
-              const restoreCart = async () => {
-                try {
-                  for (const item of pendingCart) {
-                    const productId = item.productId || item.id;
-                    const size = item.selectedSize || 'M';
-                    const color = item.selectedColor?.name || 'Mặc định';
-                    await api.addToCart(productId, item.quantity, size, color);
-                  }
-                  const freshCart = await api.getCart();
-                  setCart((Array.isArray(freshCart) ? freshCart : []).map(normalizeCartItem));
-                  localStorage.removeItem('jusst_pending_cart');
-                } catch (err) {
-                  console.error("Lỗi khôi phục giỏ hàng:", err);
-                }
-              };
-              restoreCart();
+            // 1. Cancel the order in backend
+            if (pendingOrderId) {
+              try {
+                await api.cancelOrder(pendingOrderId);
+              } catch (cancelErr) {
+                console.error("Lỗi tự động hủy đơn hàng:", cancelErr);
+              }
+              localStorage.removeItem('jusst_pending_order_id');
             }
-          } catch (e) {
-            console.error("Lỗi parse giỏ hàng tạm thời:", e);
+
+            // 2. Restore cart items
+            if (pendingCartStr) {
+              const pendingCart = JSON.parse(pendingCartStr);
+              if (Array.isArray(pendingCart) && pendingCart.length > 0) {
+                for (const item of pendingCart) {
+                  const productId = item.productId || item.id;
+                  const size = item.selectedSize || 'M';
+                  const color = item.selectedColor?.name || 'Mặc định';
+                  await api.addToCart(productId, item.quantity, size, color);
+                }
+                const freshCart = await api.getCart();
+                setCart((Array.isArray(freshCart) ? freshCart : []).map(normalizeCartItem));
+                localStorage.removeItem('jusst_pending_cart');
+              }
+            }
+          } catch (err) {
+            console.error("Lỗi khôi phục giỏ hàng:", err);
           }
-        }
+        };
+
+        restoreCart();
         setCurrentPage('cart');
       }
 
@@ -666,6 +680,7 @@ export default function App() {
       }
 
       localStorage.setItem('jusst_pending_cart', JSON.stringify(cart));
+      localStorage.setItem('jusst_pending_order_id', order.id);
       setCart([]);
       api.trackFunnel('PURCHASE');
 
