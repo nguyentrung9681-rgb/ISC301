@@ -85,12 +85,22 @@ export default function ProfilePage({
     e.preventDefault();
     if (!name.trim()) return;
 
+    const phoneClean = phone.trim();
+    if (phoneClean.length !== 10) {
+      alert("Số điện thoại phải có đúng 10 chữ số!");
+      return;
+    }
+    if (!phoneClean.startsWith('0')) {
+      alert("Số điện thoại phải bắt đầu bằng số 0!");
+      return;
+    }
+
     onUpdateProfile({
       ...currentUser,
       name: name.trim(),
       email: email.trim(),
       password: password.trim(),
-      phone: phone.trim(),
+      phone: phoneClean,
       address: address.trim(),
       avatar: avatar
     });
@@ -402,7 +412,12 @@ export default function ProfilePage({
                         className="checkout-input"
                         style={{ paddingLeft: '40px' }}
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          if (val.length <= 10) {
+                            setPhone(val);
+                          }
+                        }}
                       />
                     </div>
                   </div>

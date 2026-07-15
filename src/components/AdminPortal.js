@@ -297,6 +297,18 @@ export default function AdminPortal({
       return;
     }
 
+    const phoneClean = staffPhone.trim();
+    if (phoneClean) {
+      if (phoneClean.length !== 10) {
+        showAlert?.('SỐ ĐIỆN THOẠI SAI', 'Số điện thoại liên lạc phải có đúng 10 chữ số!', 'warning');
+        return;
+      }
+      if (!phoneClean.startsWith('0')) {
+        showAlert?.('SỐ ĐIỆN THOẠI SAI', 'Số điện thoại phải bắt đầu bằng số 0!', 'warning');
+        return;
+      }
+    }
+
     setIsSavingStaff(true);
     try {
       const payload = {
@@ -2079,7 +2091,12 @@ export default function AdminPortal({
                         className="admin-input"
                         placeholder="Ví dụ: 0987654321"
                         value={staffPhone}
-                        onChange={(e) => setStaffPhone(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          if (val.length <= 10) {
+                            setStaffPhone(val);
+                          }
+                        }}
                       />
                     </div>
 

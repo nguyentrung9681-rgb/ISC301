@@ -87,6 +87,15 @@ export default function LoginModal({
       alert("Mật khẩu xác nhận không khớp");
       return;
     }
+    const phoneClean = registerData.phone.trim();
+    if (phoneClean.length !== 10) {
+      alert("Số điện thoại phải có đúng 10 chữ số!");
+      return;
+    }
+    if (!phoneClean.startsWith('0')) {
+      alert("Số điện thoại phải bắt đầu bằng số 0!");
+      return;
+    }
     await onRegister(registerData);
   };
   const handleResetSubmit = async (e) => {
@@ -301,10 +310,15 @@ export default function LoginModal({
                 <Phone size={18} style={iconStyle} />
                 <input
                   type="text"
-                  placeholder="Số điện thoại"
+                  placeholder="Số điện thoại (10 chữ số)"
                   className="modal-input-premium"
                   value={registerData.phone}
-                  onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    if (val.length <= 10) {
+                      setRegisterData({ ...registerData, phone: val });
+                    }
+                  }}
                   required
                 />
               </div>
