@@ -646,6 +646,7 @@ export default function App() {
       }
 
       setLastOrderId(order.id);
+      setOrders(prev => [normalizeOrder(order), ...prev]);
       setPaymentStatus('PENDING');
 
       if (!isCod) {
@@ -1748,7 +1749,7 @@ export default function App() {
                     💡 Đơn hàng gần đây của bạn (Click nhanh để xem hành trình):
                   </h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                    {orders.slice(-4).map((ord) => (
+                    {orders.slice(0, 4).map((ord) => (
                       <button
                         key={ord.id}
                         onClick={() => setTrackingOrderId(String(ord.id ?? ''))}
@@ -2312,9 +2313,39 @@ export default function App() {
               </>
             )}
 
-            <button className="btn-success-back" style={{ marginTop: '15px' }} onClick={() => { setShowSuccessPopup(false); setCurrentPage('home'); }}>
-              Về Trang Chủ Mua Sắm
-            </button>
+            <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '20px', justifyContent: 'center' }}>
+              <button 
+                className="btn-success-back" 
+                style={{ flex: 1, marginTop: 0, padding: '12px 20px', fontSize: '13px' }} 
+                onClick={() => { 
+                  setShowSuccessPopup(false); 
+                  setCurrentPage('home'); 
+                }}
+              >
+                Về Trang Chủ Mua Sắm
+              </button>
+              <button 
+                className="btn-success-back" 
+                style={{ 
+                  flex: 1, 
+                  marginTop: 0, 
+                  padding: '12px 20px', 
+                  fontSize: '13px',
+                  background: 'var(--primary-gradient)', 
+                  color: 'white', 
+                  border: 'none',
+                  boxShadow: '0 4px 10px rgba(255,87,34,0.2)'
+                }} 
+                onClick={() => { 
+                  setShowSuccessPopup(false); 
+                  setTrackingOrderId(String(lastOrderId));
+                  setTrackingTab('search');
+                  setCurrentPage('order-tracking'); 
+                }}
+              >
+                Theo Dõi Đơn Hàng
+              </button>
+            </div>
           </div>
         </div>
       )}
