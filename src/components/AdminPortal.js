@@ -1885,7 +1885,11 @@ export default function AdminPortal({
                   Quản lý danh sách khách hàng (Buyer), thay đổi trạng thái hoạt động (Khóa/Mở khóa), hoặc tạo tài khoản Nhân viên (Staff) mới.
                 </p>
               </div>
-              <button className="btn-admin-submit" onClick={() => setShowCreateStaffModal(true)}>
+              <button 
+                className="btn-admin-submit" 
+                onClick={() => setShowCreateStaffModal(true)}
+                style={{ flexShrink: 0, whiteSpace: 'nowrap', height: 'fit-content', marginLeft: '20px' }}
+              >
                 + Tạo Tài Khoản Nhân Viên
               </button>
             </div>
@@ -1999,9 +2003,13 @@ export default function AdminPortal({
                           </td>
                           <td>
                             <span style={{
-                              fontSize: '12px',
+                              fontSize: '11px',
                               fontWeight: 700,
-                              color: u.accountStatus === 'ACTIVE' ? '#2e7d32' : '#c62828'
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              background: u.accountStatus === 'ACTIVE' ? 'rgba(46, 125, 50, 0.08)' : 'rgba(198, 40, 40, 0.08)',
+                              color: u.accountStatus === 'ACTIVE' ? '#2e7d32' : '#c62828',
+                              whiteSpace: 'nowrap'
                             }}>
                               {u.accountStatus === 'ACTIVE' ? 'Hoạt động' : 'Đã khóa'}
                             </span>
@@ -2014,12 +2022,17 @@ export default function AdminPortal({
                                   value={u.role}
                                   onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
                                   style={{
-                                    padding: '4px 8px',
+                                    padding: '0 10px',
                                     fontSize: '12px',
                                     borderRadius: 'var(--radius-sm)',
                                     border: '1px solid var(--border-light)',
                                     background: '#fff',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    outline: 'none',
+                                    color: 'var(--secondary)',
+                                    fontWeight: 500,
+                                    height: '32px',
+                                    boxSizing: 'border-box'
                                   }}
                                 >
                                   <option value="customer">Buyer</option>
@@ -2032,12 +2045,21 @@ export default function AdminPortal({
                                 <button
                                   className={u.accountStatus === 'ACTIVE' ? "btn-reject" : "btn-approve"}
                                   onClick={() => handleToggleUserStatus(u.id, u.accountStatus)}
-                                  style={{ padding: '4px 8px', fontSize: '12px' }}
+                                  style={{
+                                    fontSize: '12px',
+                                    height: '32px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    boxSizing: 'border-box',
+                                    padding: '0 12px',
+                                    whiteSpace: 'nowrap'
+                                  }}
                                 >
                                   {u.accountStatus === 'ACTIVE' ? 'Khóa' : 'Mở khóa'}
                                 </button>
                               ) : (
-                                u.role === 'manager' && <span style={{ fontSize: '11px', color: 'var(--secondary-muted)', fontStyle: 'italic' }}>Không thể tác vụ</span>
+                                u.role === 'manager' && <span style={{ fontSize: '11px', color: 'var(--secondary-muted)', fontStyle: 'italic', paddingRight: '8px' }}>Không thể tác vụ</span>
                               )}
                             </div>
                           </td>
