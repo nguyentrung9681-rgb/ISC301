@@ -155,9 +155,22 @@ export default function App() {
         }
 
         setProducts((Array.isArray(productsRes) ? productsRes : []).map(normalizeProduct));
+        
+        const search = window.location.search;
+        const path = window.location.pathname;
+        const isReturningFromPayOS = path.includes('/payment') || search.includes('status=') || search.includes('orderCode=');
+
+        if (!isReturningFromPayOS) {
+          localStorage.removeItem('jusst_pending_cart');
+          localStorage.removeItem('jusst_pending_order_id');
+        }
+
         const hasPendingCart = localStorage.getItem('jusst_pending_cart');
         if (!hasPendingCart) {
-          setCart((Array.isArray(cartRes) ? cartRes : []).map(normalizeCartItem));
+          const rawCart = Array.isArray(cartRes) ? cartRes : [];
+          const normalized = rawCart.map(normalizeCartItem);
+          setCart(normalized);
+          setSelectedCartItemIds(normalized.map(item => item.cartItemId));
         }
         setWishlist((Array.isArray(wishlistRes) ? wishlistRes : []).map(normalizeCartItem));
         setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
@@ -669,7 +682,10 @@ export default function App() {
           const checkoutUrl = paymentData?.checkoutUrl || paymentData || '';
           setPayosCheckoutUrl(checkoutUrl);
           if (checkoutUrl) {
+            localStorage.setItem('jusst_pending_cart', JSON.stringify(cart));
+            localStorage.setItem('jusst_pending_order_id', order.id);
             window.location.href = checkoutUrl;
+            return;
           }
         } catch (payosError) {
           console.error("Lỗi tạo link PayOS:", payosError);
@@ -679,9 +695,9 @@ export default function App() {
         setPayosCheckoutUrl('');
       }
 
-      localStorage.setItem('jusst_pending_cart', JSON.stringify(cart));
-      localStorage.setItem('jusst_pending_order_id', order.id);
-      setCart([]);
+      localStorage.removeItem('jusst_pending_cart');
+      localStorage.removeItem('jusst_pending_order_id');
+      await fetchAndSetCart();
       api.trackFunnel('PURCHASE');
 
       setAppliedVoucher(null);
