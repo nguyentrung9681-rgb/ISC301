@@ -74,7 +74,7 @@ export default function Navbar({
         </nav>
 
         {/* SEARCH BAR (hidden in admin mode) */}
-        {!isAdminMode ? (
+        {!isAdminMode && (
           <div className="nav-search-bar">
             <Search size={16} className="nav-search-icon" />
             <input 
@@ -84,10 +84,6 @@ export default function Navbar({
               value={searchQuery}
               onChange={handleSearchChange}
             />
-          </div>
-        ) : (
-          <div style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--secondary-muted)', fontWeight: 500 }}>
-            {currentUser?.role === 'staff' ? 'Cổng staff' : 'Cổng manager'}
           </div>
         )}
 
