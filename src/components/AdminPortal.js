@@ -1103,9 +1103,9 @@ export default function AdminPortal({
                       <table className="admin-table" style={{ fontSize: '12.5px' }}>
                         <thead>
                           <tr>
-                            <th>Khách hàng</th>
-                            <th style={{ textAlign: 'center' }}>Số đơn</th>
-                            <th style={{ textAlign: 'right' }}>Chi tiêu</th>
+                            <th style={{ whiteSpace: 'nowrap' }}>Khách hàng</th>
+                            <th style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>Số đơn</th>
+                            <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Chi tiêu</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1116,11 +1116,11 @@ export default function AdminPortal({
                               <tr key={c.userId}>
                                 <td>
                                   <div>
-                                    <div style={{ fontWeight: 600 }}>{c.fullName}</div>
+                                    <div style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{c.fullName}</div>
                                     <div style={{ fontSize: '11px', color: 'var(--secondary-muted)' }}>{c.email}</div>
                                   </div>
                                 </td>
-                                <td style={{ textAlign: 'center', fontWeight: 700 }}>{c.totalOrders} đơn</td>
+                                <td style={{ textAlign: 'center', fontWeight: 700, whiteSpace: 'nowrap' }}>{c.totalOrders} đơn</td>
                                 <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{c.totalSpent.toLocaleString('vi-VN') + '\u00a0₫'}</td>
                               </tr>
                             ))
@@ -1142,10 +1142,10 @@ export default function AdminPortal({
                       <table className="admin-table" style={{ fontSize: '12.5px' }}>
                         <thead>
                           <tr>
-                            <th>Sản phẩm</th>
-                            <th>Danh mục</th>
-                            <th>Số lượng tồn</th>
-                            <th>Ngưỡng cảnh báo</th>
+                            <th style={{ whiteSpace: 'nowrap' }}>Sản phẩm</th>
+                            <th style={{ whiteSpace: 'nowrap' }}>Danh mục</th>
+                            <th style={{ whiteSpace: 'nowrap' }}>Số lượng tồn</th>
+                            <th style={{ whiteSpace: 'nowrap' }}>Ngưỡng cảnh báo</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1160,9 +1160,9 @@ export default function AdminPortal({
                                     <div style={{ fontWeight: 600 }}>{p.productName}</div>
                                   </div>
                                 </td>
-                                <td>{p.category}</td>
-                                <td style={{ fontWeight: 700, color: '#c62828' }}>{p.stockQuantity} cái</td>
-                                <td style={{ color: 'var(--secondary-muted)' }}>{p.threshold} cái</td>
+                                <td style={{ whiteSpace: 'nowrap' }}>{p.category}</td>
+                                <td style={{ fontWeight: 700, color: '#c62828', whiteSpace: 'nowrap' }}>{p.stockQuantity} cái</td>
+                                <td style={{ color: 'var(--secondary-muted)', whiteSpace: 'nowrap' }}>{p.threshold} cái</td>
                               </tr>
                             ))
                           )}
@@ -1221,12 +1221,12 @@ export default function AdminPortal({
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Sản phẩm</th>
-                  <th>Giá Bán</th>
-                  <th>Kho hàng</th>
-                  <th>Danh mục</th>
-                  <th>Trạng thái</th>
-                  <th style={{ textAlign: 'right' }}>Hành động</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Sản phẩm</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Giá Bán</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Kho hàng</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Danh mục</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Trạng thái</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Hành động</th>
                 </tr>
               </thead>
               <tbody>
@@ -1249,11 +1249,11 @@ export default function AdminPortal({
                         </div>
                       </td>
                       <td style={{ fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{prod.price.toLocaleString('vi-VN') + '\u00a0₫'}</td>
-                      <td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
                         <span style={{ fontWeight: 700, color: prod.inventory < 5 ? '#c62828' : 'inherit' }}>{prod.inventory} cái</span>
                         {prod.inventory < 5 && <span style={{ color: '#c62828', fontSize: '10px', marginLeft: '6px', fontWeight: 700 }}>(Sắp hết!)</span>}
                       </td>
-                      <td>{prod.categoryLabel || prod.category}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{prod.categoryLabel || prod.category}</td>
                       <td>
                         <span className={`admin-status-pill ${prod.status}`} style={{
                           fontSize: '11px',
@@ -1322,9 +1322,9 @@ export default function AdminPortal({
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Tên danh mục</th>
-                      <th>Mã</th>
-                      <th style={{ textAlign: 'right' }}>Thao tác</th>
+                      <th style={{ whiteSpace: 'nowrap' }}>Tên danh mục</th>
+                      <th style={{ whiteSpace: 'nowrap' }}>Mã</th>
+                      <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1640,13 +1640,13 @@ export default function AdminPortal({
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Mã Đơn</th>
-                  <th>Khách Hàng</th>
-                  <th>Sản phẩm đặt mua</th>
-                  <th>Tổng giá trị</th>
-                  <th>Thanh toán</th>
-                  <th>Trạng thái</th>
-                  <th style={{ textAlign: 'right' }}>Thao tác đơn</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Mã Đơn</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Khách Hàng</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Sản phẩm đặt mua</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Tổng giá trị</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Thanh toán</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Trạng thái</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Thao tác đơn</th>
                 </tr>
               </thead>
               <tbody>
@@ -1750,11 +1750,11 @@ export default function AdminPortal({
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Mã Code</th>
-                      <th>Giảm Giá</th>
-                      <th style={{ textAlign: 'center' }}>Đã dùng / Tối đa</th>
-                      <th>Hạn sử dụng</th>
-                      <th style={{ textAlign: 'right' }}>Thao tác</th>
+                      <th style={{ whiteSpace: 'nowrap' }}>Mã Code</th>
+                      <th style={{ whiteSpace: 'nowrap' }}>Giảm Giá</th>
+                      <th style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>Đã dùng / Tối đa</th>
+                      <th style={{ whiteSpace: 'nowrap' }}>Hạn sử dụng</th>
+                      <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1771,19 +1771,19 @@ export default function AdminPortal({
 
                         return (
                           <tr key={v.id}>
-                            <td style={{ fontWeight: 700 }}>
+                            <td style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
                               <span style={{ background: '#f5f5f5', padding: '4px 8px', borderRadius: '4px', border: '1px dashed #ccc' }}>
                                 {v.code}
                               </span>
                             </td>
-                            <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{v.discountPercent}%</td>
-                            <td style={{ textAlign: 'center' }}>{v.usedCount} / {v.maxUses}</td>
-                            <td style={{ color: isExpired || isMaxedOut ? '#c62828' : 'inherit' }}>
+                            <td style={{ fontWeight: 700, color: 'var(--primary)', whiteSpace: 'nowrap' }}>{v.discountPercent}%</td>
+                            <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{v.usedCount} / {v.maxUses}</td>
+                            <td style={{ color: isExpired || isMaxedOut ? '#c62828' : 'inherit', whiteSpace: 'nowrap' }}>
                               {v.expiryDate ? new Date(v.expiryDate).toLocaleDateString('vi-VN') : 'Vô thời hạn'}
-                              {isExpired && <span style={{ fontSize: '10px', marginLeft: '6px', fontWeight: 700 }}>(Hết hạn)</span>}
-                              {isMaxedOut && <span style={{ fontSize: '10px', marginLeft: '6px', fontWeight: 700 }}>(Hết lượt)</span>}
+                              {isExpired && <span style={{ fontSize: '11px', marginLeft: '6px', fontWeight: 700, whiteSpace: 'nowrap' }}>(Hết hạn)</span>}
+                              {isMaxedOut && <span style={{ fontSize: '11px', marginLeft: '6px', fontWeight: 700, whiteSpace: 'nowrap' }}>(Hết lượt)</span>}
                             </td>
-                            <td style={{ textAlign: 'right' }}>
+                            <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                               <button
                                 onClick={() => handleDeleteVoucher(v.id)}
                                 style={{ color: '#c62828', cursor: 'pointer', background: 'transparent', border: 'none', padding: '4px' }}
