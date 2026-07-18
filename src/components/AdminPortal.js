@@ -1706,25 +1706,25 @@ export default function AdminPortal({
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
                             {order.status === 'Chờ xử lý' && (
-                              <button className="btn-approve" onClick={() => onUpdateOrderStatus(order.id, 'Đang giao')} style={{ padding: '4px 8px' }}>
+                              <button className="btn-approve" onClick={() => onUpdateOrderStatus(order.id, 'Đang giao')} style={{ padding: '4px 10px', fontSize: '13px' }}>
                                 Giao hàng
                               </button>
                             )}
 
                             {order.status === 'Đang giao' && (
-                              <button className="btn-approve" onClick={() => onUpdateOrderStatus(order.id, 'Đã giao')} style={{ background: '#e8f5e9', color: '#2e7d32', padding: '4px 8px' }}>
+                              <button className="btn-approve" onClick={() => onUpdateOrderStatus(order.id, 'Đã giao')} style={{ background: '#e8f5e9', color: '#2e7d32', padding: '4px 10px', fontSize: '13px' }}>
                                 Đã giao
                               </button>
                             )}
 
                             {(order.status === 'Chờ xử lý' || order.status === 'Đang giao') && currentRole === 'manager' && (
-                              <button className="btn-reject" onClick={() => onUpdateOrderStatus(order.id, 'Hủy đơn')} style={{ padding: '4px 8px' }}>
+                              <button className="btn-reject" onClick={() => onUpdateOrderStatus(order.id, 'Hủy đơn')} style={{ padding: '4px 10px', fontSize: '13px' }}>
                                 Hủy đơn
                               </button>
                             )}
 
-                            {order.status === 'Đã giao' && <span style={{ fontSize: '11px', color: '#2e7d32', fontWeight: 600 }}>Hoàn tất</span>}
-                            {order.status === 'Hủy đơn' && <span style={{ fontSize: '11px', color: '#c62828', fontWeight: 600 }}>Đã hủy</span>}
+                            {order.status === 'Đã giao' && <span style={{ fontSize: '13.5px', color: '#2e7d32', fontWeight: 700, padding: '4px 8px' }}>Hoàn tất</span>}
+                            {order.status === 'Hủy đơn' && <span style={{ fontSize: '13.5px', color: '#c62828', fontWeight: 700, padding: '4px 8px' }}>Đã hủy</span>}
                           </div>
                         </td>
                       </tr>
