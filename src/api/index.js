@@ -276,6 +276,9 @@ export const api = {
 
   getOrderHistory: () => apiFetch("/api/client/order/history"),
 
+  getPublicOrderTracking: (id) => apiFetch(`/api/client/order/public-tracking/${id}`),
+
+
   cancelOrder: (id) =>
     apiFetch(`/api/client/order/cancel/${id}`, {
       method: "POST",

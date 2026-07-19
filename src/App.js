@@ -77,6 +77,9 @@ export default function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [trackingOrderId, setTrackingOrderId] = useState('');
   const [trackingTab, setTrackingTab] = useState('search');
+  const [publicTrackedOrder, setPublicTrackedOrder] = useState(null);
+  const [isSearchingPublicOrder, setIsSearchingPublicOrder] = useState(false);
+
 
   // --- NAVIGATION & PORTAL STATES ---
   const [currentPage, setCurrentPage] = useState('home'); // home, shop, about, cart, checkout, admin
@@ -208,6 +211,44 @@ export default function App() {
       fetchOrders();
     }
   }, [currentPage, currentUser]);
+
+  // Lắng nghe URL parameter khi khách quét mã QR từ email (e.g. ?trackOrder=33 hoặc ?orderId=33)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const trackId = params.get('trackOrder') || params.get('orderId');
+    if (trackId) {
+      setCurrentPage('order-tracking');
+      setTrackingOrderId(String(trackId).trim());
+      setTrackingTab('search');
+    }
+  }, []);
+
+  // Tự động tra cứu qua API công khai nếu không có trong đơn hàng local
+  useEffect(() => {
+    if (!trackingOrderId) {
+      setPublicTrackedOrder(null);
+      return;
+    }
+    const cleanId = String(trackingOrderId || '').replace('#', '').trim();
+    const foundInLocal = orders.find(o => String(o.id) === cleanId);
+    if (!foundInLocal && cleanId) {
+      setIsSearchingPublicOrder(true);
+      api.getPublicOrderTracking(cleanId)
+        .then(res => {
+          const raw = res.data || res;
+          if (raw && raw.id) {
+            setPublicTrackedOrder(normalizeOrder(raw));
+          } else {
+            setPublicTrackedOrder(null);
+          }
+        })
+        .catch(() => setPublicTrackedOrder(null))
+        .finally(() => setIsSearchingPublicOrder(false));
+    } else {
+      setPublicTrackedOrder(null);
+    }
+  }, [trackingOrderId, orders]);
+
 
   const fetchActiveVouchers = async () => {
     try {
@@ -1826,7 +1867,16 @@ export default function App() {
                 }
 
                 const cleanId = String(trackingOrderId || '').replace('#', '').trim();
-                const matchedOrder = orders.find(o => String(o.id) === cleanId);
+                const matchedOrder = orders.find(o => String(o.id) === cleanId) || publicTrackedOrder;
+
+                if (isSearchingPublicOrder) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--primary)' }}>
+                      <RefreshCw size={24} className="spin" style={{ marginBottom: '10px' }} />
+                      <p style={{ fontWeight: 600 }}>Đang tra cứu dữ liệu hành trình đơn hàng #{cleanId}...</p>
+                    </div>
+                  );
+                }
 
                 if (!matchedOrder) {
                   return (
@@ -1836,6 +1886,7 @@ export default function App() {
                     </div>
                   );
                 }
+
 
                 const s = matchedOrder.status; // Chờ xử lý, Đang giao, Đã giao, Hủy đơn
 
