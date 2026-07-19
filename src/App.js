@@ -903,6 +903,19 @@ export default function App() {
     );
   };
 
+  const handleClientRequestReturn = async (id, reason) => {
+    try {
+      await api.requestReturnOrder(id, reason);
+      const ordersRes = (currentUser?.role === 'manager' || currentUser?.role === 'staff')
+        ? await api.getAdminOrders().catch(() => [])
+        : await api.getOrderHistory().catch(() => []);
+      setOrders((Array.isArray(ordersRes) ? ordersRes : []).map(normalizeOrder));
+      addToast(`Đã gửi yêu cầu đổi size cho đơn hàng #${id}!`, 'success');
+    } catch (err) {
+      addToast(err.message || 'Lỗi gửi yêu cầu đổi size', 'error');
+    }
+  };
+
   const handleGeneratePayOSLink = async (orderId) => {
     try {
       addToast('Đang tạo liên kết thanh toán PayOS...', 'info');
@@ -2145,6 +2158,7 @@ export default function App() {
             orders={orders}
             products={products}
             onCancelOrder={handleClientCancelOrder}
+            onRequestReturnOrder={handleClientRequestReturn}
             onGeneratePayOSLink={handleGeneratePayOSLink}
           />
         )}

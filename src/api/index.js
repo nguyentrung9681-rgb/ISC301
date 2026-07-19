@@ -91,10 +91,16 @@ const toBackendOrderStatus = (status) => {
     "Đang giao": "SHIPPING",
     "Đã giao": "DELIVERED",
     "Hủy đơn": "CANCELLED",
+    "Yêu cầu đổi size": "RETURN_REQUESTED",
+    "Đã duyệt đổi size": "RETURN_APPROVED",
+    "Đã đổi trả": "RETURNED",
     PENDING: "PENDING",
     SHIPPING: "SHIPPING",
     DELIVERED: "DELIVERED",
     CANCELLED: "CANCELLED",
+    RETURN_REQUESTED: "RETURN_REQUESTED",
+    RETURN_APPROVED: "RETURN_APPROVED",
+    RETURNED: "RETURNED"
   };
 
   return statusMap[status] || status;
@@ -272,6 +278,11 @@ export const api = {
 
   cancelOrder: (id) =>
     apiFetch(`/api/client/order/cancel/${id}`, {
+      method: "POST",
+    }),
+
+  requestReturnOrder: (id, reason = "") =>
+    apiFetch(`/api/client/order/return-request/${id}?reason=${encodeURIComponent(reason)}`, {
       method: "POST",
     }),
 

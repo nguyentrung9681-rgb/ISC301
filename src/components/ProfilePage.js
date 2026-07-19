@@ -4,7 +4,7 @@ import {
   User, Mail, Phone, MapPin, Lock, Save, ArrowLeft,
   Calendar, Truck, ShoppingBag, 
   ChevronDown, ChevronUp, CheckCircle, Clock, XCircle, 
-  ExternalLink, Check
+  ExternalLink, Check, RefreshCw
 } from 'lucide-react';
 import { api } from '../api';
 
@@ -24,6 +24,7 @@ export default function ProfilePage({
   orders = [], 
   products = [],
   onCancelOrder,
+  onRequestReturnOrder,
   onGeneratePayOSLink
 }) {
   const [name, setName] = useState(currentUser.name || '');
@@ -33,6 +34,11 @@ export default function ProfilePage({
   const [address, setAddress] = useState(currentUser.address || '12 Hàng Khay, Quận Hoàn Kiếm, Hà Nội');
   const [avatar, setAvatar] = useState(currentUser.avatar || PRESET_AVATARS[0].url);
   const [customAvatarUrl, setCustomAvatarUrl] = useState('');
+
+  // Return order modal states
+  const [returnModalOrderId, setReturnModalOrderId] = useState(null);
+  const [returnReason, setReturnReason] = useState('Size chật (Cần đổi size lớn hơn)');
+  const [returnNote, setReturnNote] = useState('');
 
   // States for Purchase History tab
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' or 'history'
@@ -471,7 +477,7 @@ export default function ProfilePage({
                 
                 {/* Filter status pills */}
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {['Tất cả', 'Chờ xử lý', 'Đang giao', 'Đã giao', 'Hủy đơn'].map((status) => {
+                  {['Tất cả', 'Chờ xử lý', 'Đang giao', 'Đã giao', 'Yêu cầu đổi size', 'Hủy đơn'].map((status) => {
                     const isActive = statusFilter === status;
                     return (
                       <button
@@ -554,22 +560,34 @@ export default function ProfilePage({
                       let statusColor = '#000';
                       let StatusIcon = Clock;
                       
-                      if (order.status === 'Chờ xử lý') {
+                      if (order.status === 'Chờ xử lý' || order.status === 'PENDING') {
                         statusBg = '#fffbeb';
                         statusColor = '#d97706';
                         StatusIcon = Clock;
-                      } else if (order.status === 'Đang giao') {
+                      } else if (order.status === 'Đang giao' || order.status === 'SHIPPING') {
                         statusBg = '#eff6ff';
                         statusColor = '#2563eb';
                         StatusIcon = Truck;
-                      } else if (order.status === 'Đã giao') {
+                      } else if (order.status === 'Đã giao' || order.status === 'DELIVERED') {
                         statusBg = '#f0fdf4';
                         statusColor = '#16a34a';
                         StatusIcon = CheckCircle;
-                      } else if (order.status === 'Hủy đơn') {
+                      } else if (order.status === 'Hủy đơn' || order.status === 'CANCELLED') {
                         statusBg = '#fef2f2';
                         statusColor = '#dc2626';
                         StatusIcon = XCircle;
+                      } else if (order.status === 'Yêu cầu đổi size' || order.status === 'RETURN_REQUESTED') {
+                        statusBg = '#fff7ed';
+                        statusColor = '#c2410c';
+                        StatusIcon = RefreshCw;
+                      } else if (order.status === 'Đã duyệt đổi size' || order.status === 'RETURN_APPROVED') {
+                        statusBg = '#f0f9ff';
+                        statusColor = '#0369a1';
+                        StatusIcon = CheckCircle;
+                      } else if (order.status === 'Đã đổi trả' || order.status === 'RETURNED') {
+                        statusBg = '#f3e8ff';
+                        statusColor = '#7e22ce';
+                        StatusIcon = CheckCircle;
                       }
 
                       return (
@@ -667,13 +685,23 @@ export default function ProfilePage({
                               background: '#fcfcfc'
                             }}>
                               {/* Visual Journey Timeline Stepper */}
-                              {order.status === 'Hủy đơn' ? (
+                              {order.status === 'Hủy đơn' || order.status === 'CANCELLED' ? (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', background: '#ffebee', color: '#c62828', padding: '16px 20px', borderRadius: 'var(--radius-md)', marginBottom: '24px', border: '1px solid #ffcdd2' }}>
                                   <XCircle size={28} />
                                   <div>
                                     <h5 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>ĐƠN HÀNG ĐÃ BỊ HỦY BỎ</h5>
                                     <p style={{ fontSize: '12px', color: 'rgba(198, 40, 40, 0.8)', margin: '2px 0 0 0' }}>
                                       Đơn hàng này đã được hủy bỏ. Quý khách vui lòng liên hệ CSKH 1900-6789 nếu có bất kỳ thắc mắc nào.
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : (order.status === 'Yêu cầu đổi size' || order.status === 'RETURN_REQUESTED') ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', background: '#fff7ed', color: '#c2410c', padding: '16px 20px', borderRadius: 'var(--radius-md)', marginBottom: '24px', border: '1px solid #ffedd5' }}>
+                                  <RefreshCw size={24} />
+                                  <div>
+                                    <h5 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>ĐÃ GỬI YÊU CẦU ĐỔI SIZE TRONG 7 NGÀY</h5>
+                                    <p style={{ fontSize: '12px', color: 'rgba(194, 65, 12, 0.9)', margin: '2px 0 0 0' }}>
+                                      Yêu cầu đổi size của quý khách đã được tiếp nhận và đang chờ Quản lý duyệt. Nhân viên sẽ hỗ trợ trong thời gian sớm nhất!
                                     </p>
                                   </div>
                                 </div>
@@ -928,6 +956,98 @@ export default function ProfilePage({
                                       >
                                         Hủy Đơn Hàng Này
                                       </button>
+                                    </div>
+                                  )}
+
+                                  {/* Order Action: Request Size Exchange (7 Days Return) */}
+                                  {(order.status === 'Đã giao' || order.status === 'DELIVERED') && (
+                                    <div style={{ marginTop: '16px' }}>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setReturnModalOrderId(returnModalOrderId === order.id ? null : order.id);
+                                        }}
+                                        style={{
+                                          width: '100%',
+                                          padding: '10px 16px',
+                                          background: '#fff7ed',
+                                          color: '#c2410c',
+                                          border: '1px solid #fed7aa',
+                                          borderRadius: 'var(--radius-sm)',
+                                          fontSize: '12px',
+                                          fontWeight: 700,
+                                          cursor: 'pointer',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          gap: '6px',
+                                          transition: 'var(--transition)'
+                                        }}
+                                      >
+                                        <RefreshCw size={14} />
+                                        <span>Yêu Cầu Đổi Size (Trong 7 Ngày)</span>
+                                      </button>
+
+                                      {returnModalOrderId === order.id && (
+                                        <div 
+                                          onClick={(e) => e.stopPropagation()}
+                                          style={{
+                                            marginTop: '12px',
+                                            padding: '14px',
+                                            background: '#fff',
+                                            border: '1px solid #fed7aa',
+                                            borderRadius: '8px',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.06)'
+                                          }}
+                                        >
+                                          <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--secondary)', marginBottom: '8px' }}>
+                                            Lý do yêu cầu đổi size:
+                                          </div>
+                                          <select
+                                            value={returnReason}
+                                            onChange={(e) => setReturnReason(e.target.value)}
+                                            style={{ width: '100%', padding: '8px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border-light)', marginBottom: '8px' }}
+                                          >
+                                            <option value="Size chật (Cần đổi size lớn hơn)">Size chật (Cần đổi size lớn hơn)</option>
+                                            <option value="Size rộng (Cần đổi size nhỏ hơn)">Size rộng (Cần đổi size nhỏ hơn)</option>
+                                            <option value="Muốn đổi mẫu hoặc màu sắc khác">Muốn đổi mẫu hoặc màu sắc khác</option>
+                                          </select>
+                                          <input
+                                            type="text"
+                                            placeholder="Ghi chú chi tiết (VD: Muốn đổi từ size M sang L)..."
+                                            value={returnNote}
+                                            onChange={(e) => setReturnNote(e.target.value)}
+                                            style={{ width: '100%', padding: '8px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--border-light)', marginBottom: '10px', boxSizing: 'border-box' }}
+                                          />
+                                          <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (onRequestReturnOrder) {
+                                                  onRequestReturnOrder(order.id, `${returnReason}${returnNote ? ' - ' + returnNote : ''}`);
+                                                }
+                                                setReturnModalOrderId(null);
+                                                setReturnNote('');
+                                              }}
+                                              style={{ flex: 1, padding: '8px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                                            >
+                                              Xác Nhận Đổi Size
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setReturnModalOrderId(null);
+                                              }}
+                                              style={{ padding: '8px 12px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '4px', fontSize: '12px', cursor: 'pointer' }}
+                                            >
+                                              Hủy
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
 
