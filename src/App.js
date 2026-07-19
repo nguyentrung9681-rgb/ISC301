@@ -192,14 +192,16 @@ export default function App() {
   // Theo dõi sự kiện bắt đầu thanh toán khi chuyển đổi trang (Kiểm tra chọn ít nhất 1 sp)
   useEffect(() => {
     if (currentPage === 'checkout') {
-      if (!selectedCartItems || selectedCartItems.length === 0) {
+      if (!selectedCartItemIds || selectedCartItemIds.length === 0) {
         addToast("Bắt buộc phải chọn ít nhất 1 sản phẩm trong giỏ hàng mới chuyển sang trang thanh toán!", "warning");
         setCurrentPage('cart');
         return;
       }
       api.trackFunnel('INITIATE_CHECKOUT');
     }
-  }, [currentPage, selectedCartItems]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, selectedCartItemIds]);
+
 
 
   useEffect(() => {
