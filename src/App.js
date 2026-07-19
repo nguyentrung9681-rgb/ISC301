@@ -189,12 +189,18 @@ export default function App() {
     getSessionId();
   }, []);
 
-  // Theo dõi sự kiện bắt đầu thanh toán khi chuyển đổi trang
+  // Theo dõi sự kiện bắt đầu thanh toán khi chuyển đổi trang (Kiểm tra chọn ít nhất 1 sp)
   useEffect(() => {
     if (currentPage === 'checkout') {
+      if (!selectedCartItems || selectedCartItems.length === 0) {
+        addToast("Bắt buộc phải chọn ít nhất 1 sản phẩm trong giỏ hàng mới chuyển sang trang thanh toán!", "warning");
+        setCurrentPage('cart');
+        return;
+      }
       api.trackFunnel('INITIATE_CHECKOUT');
     }
-  }, [currentPage]);
+  }, [currentPage, selectedCartItems]);
+
 
   useEffect(() => {
     if (currentUser && (currentPage === 'profile' || currentPage === 'order-tracking')) {
@@ -999,7 +1005,16 @@ export default function App() {
   const voucherDiscount = appliedVoucher ? (cartTotalPrice * appliedVoucher.discountPercent / 100) : 0;
   const cartFinalPrice = Math.max(0, cartTotalPrice - voucherDiscount + shipFee);
 
+  const handleProceedToCheckout = () => {
+    if (!selectedCartItems || selectedCartItems.length === 0) {
+      addToast("Bắt buộc phải chọn ít nhất 1 sản phẩm trong giỏ hàng mới chuyển sang trang thanh toán!", "warning");
+      return;
+    }
+    setCurrentPage('checkout');
+  };
+
   const handleClearAllFilters = () => {
+
     setFilterCategory('');
     setFilterSize('');
     setFilterColor('');
@@ -1628,10 +1643,11 @@ export default function App() {
                     <span className="total-price-text" style={{ whiteSpace: 'nowrap' }}>{cartFinalPrice.toLocaleString('vi-VN') + '\u00a0₫'}</span>
                   </div>
 
-                  <button className="checkout-action-btn" onClick={() => setCurrentPage('checkout')}>
+                  <button className="checkout-action-btn" onClick={handleProceedToCheckout}>
                     <span>Tiến Hành Thanh Toán</span>
                     <ArrowRight size={18} />
                   </button>
+
                 </div>
               )}
             </div>
