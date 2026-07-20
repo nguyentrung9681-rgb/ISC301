@@ -38,7 +38,9 @@ import {
   RefreshCw,
   AlertCircle,
   XCircle,
-  Check
+  Check,
+  Tag,
+  X
 } from 'lucide-react';
 
 const DEFAULT_CATEGORIES = [
@@ -1629,17 +1631,54 @@ export default function App() {
                     </button>
                   </div>
                   {appliedVoucher && (
-                    <div style={{ fontSize: '11px', color: '#2e7d32', display: 'flex', justifyContent: 'space-between', marginBottom: '15px', marginTop: '-10px', padding: '0 4px' }}>
-                      <span>Đã áp dụng: <strong>{appliedVoucher.code}</strong></span>
+                    <div 
+                      style={{ 
+                        background: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)', 
+                        border: '1px solid #81c784', 
+                        borderRadius: '10px', 
+                        padding: '10px 14px', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between', 
+                        marginTop: '12px',
+                        marginBottom: '16px',
+                        boxShadow: '0 2px 6px rgba(46, 125, 50, 0.12)' 
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Tag size={18} color="#1b5e20" />
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '11px', color: '#2e7d32', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Đã Áp Dụng Mã Giảm Giá
+                          </span>
+                          <span style={{ fontSize: '14px', fontWeight: 800, color: '#1b5e20' }}>
+                            {appliedVoucher.code} <span style={{ fontSize: '12px', fontWeight: 600, color: '#2e7d32' }}>(-{appliedVoucher.discountPercent}%)</span>
+                          </span>
+                        </div>
+                      </div>
                       <button 
                         type="button" 
                         onClick={() => {
                           setAppliedVoucher(null);
                           localStorage.removeItem('jusst_applied_voucher_code');
                         }} 
-                        style={{ background: 'none', border: 'none', color: '#c62828', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                        style={{ 
+                          background: '#ffffff', 
+                          border: '1px solid #ef5350', 
+                          color: '#c62828', 
+                          fontSize: '12px', 
+                          fontWeight: 700, 
+                          padding: '5px 10px', 
+                          borderRadius: '6px', 
+                          cursor: 'pointer', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '4px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
+                        }}
                       >
-                        Hủy
+                        <X size={14} />
+                        <span>Hủy</span>
                       </button>
                     </div>
                   )}
