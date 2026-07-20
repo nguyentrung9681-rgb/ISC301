@@ -19,7 +19,8 @@ import {
   Eye,
   CreditCard,
   CheckCircle,
-  ShoppingCart
+  ShoppingCart,
+  Search
 } from 'lucide-react';
 import { api } from '../api';
 import Pagination from './Pagination';
@@ -216,13 +217,14 @@ export default function AdminPortal({
   const [ordersPage, setOrdersPage] = useState(1);
   const [usersPage, setUsersPage] = useState(1);
 
-  // Sorting States
+  // Sorting & Search States
   const [prodSortBy, setProdSortBy] = useState('newest');
   const [orderSortBy, setOrderSortBy] = useState('newest');
+  const [prodSearchQuery, setProdSearchQuery] = useState('');
 
   useEffect(() => {
     setProductsPage(1);
-  }, [products.length, prodSortBy]);
+  }, [products.length, prodSortBy, prodSearchQuery]);
 
   useEffect(() => {
     setOrdersPage(1);
@@ -384,16 +386,27 @@ export default function AdminPortal({
 
   const activeCategories = categories.length > 0 ? categories : DEFAULT_CATEGORIES;
 
+  const filteredProducts = useMemo(() => {
+    if (!prodSearchQuery.trim()) return products;
+    const query = prodSearchQuery.trim().toLowerCase();
+    return products.filter((p) =>
+      (p.name && p.name.toLowerCase().includes(query)) ||
+      (p.id && String(p.id).toLowerCase().includes(query)) ||
+      (p.categoryLabel && p.categoryLabel.toLowerCase().includes(query)) ||
+      (p.category && p.category.toLowerCase().includes(query))
+    );
+  }, [products, prodSearchQuery]);
+
   const productsPageSize = 10;
   const sortedProducts = useMemo(() => {
-    return [...products].sort((a, b) => {
+    return [...filteredProducts].sort((a, b) => {
       if (prodSortBy === 'newest') return Number(b.id || 0) - Number(a.id || 0);
       if (prodSortBy === 'oldest') return Number(a.id || 0) - Number(b.id || 0);
       if (prodSortBy === 'name-asc') return (a.name || '').localeCompare(b.name || '', 'vi');
       if (prodSortBy === 'name-desc') return (b.name || '').localeCompare(a.name || '', 'vi');
       return 0;
     });
-  }, [products, prodSortBy]);
+  }, [filteredProducts, prodSortBy]);
 
   const totalProductsPages = Math.ceil(sortedProducts.length / productsPageSize);
   const paginatedProducts = useMemo(() => {
@@ -1188,7 +1201,34 @@ export default function AdminPortal({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
               <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Quản Lý Toàn Bộ Sản Phẩm</h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', width: '280px' }}>
+                  <input
+                    type="text"
+                    placeholder="Tìm tên, mã sản phẩm hoặc danh mục..."
+                    value={prodSearchQuery}
+                    onChange={(e) => setProdSearchQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px 8px 36px',
+                      fontSize: '13px',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'white',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-muted)' }} />
+                  {prodSearchQuery && (
+                    <X
+                      size={14}
+                      onClick={() => setProdSearchQuery('')}
+                      style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary-muted)', cursor: 'pointer' }}
+                    />
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)' }}>Sắp xếp:</span>
                   <select

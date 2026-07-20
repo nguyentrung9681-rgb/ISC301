@@ -339,6 +339,8 @@ export default function App() {
         addToast('Thanh toán đơn hàng thành công qua cổng PayOS!', 'success');
         localStorage.removeItem('jusst_pending_cart');
         localStorage.removeItem('jusst_pending_order_id');
+        localStorage.removeItem('jusst_applied_voucher_code');
+        setAppliedVoucher(null);
         setCurrentPage('profile'); // Chuyển đến trang cá nhân để xem lịch sử mua hàng
       } else if (isCancel) {
         addToast('Giao dịch thanh toán đã bị hủy hoặc không thành công. Giỏ hàng đã được khôi phục.', 'warning');
@@ -725,6 +727,11 @@ export default function App() {
       setOrders(prev => [normalizeOrder(order), ...prev]);
       setPaymentStatus('PENDING');
 
+      // Clear applied voucher IMMEDIATELY so it is consumed for this order and not reused on next orders!
+      setAppliedVoucher(null);
+      localStorage.removeItem('jusst_applied_voucher_code');
+      setVoucherCodeInput('');
+
       if (!isCod) {
         try {
           const paymentData = await api.generatePayOSLink(order.id);
@@ -748,11 +755,8 @@ export default function App() {
       localStorage.removeItem('jusst_pending_order_id');
       await fetchAndSetCart();
       api.trackFunnel('PURCHASE');
-
-      setAppliedVoucher(null);
-      localStorage.removeItem('jusst_applied_voucher_code');
-      setVoucherCodeInput('');
       setShowSuccessPopup(true);
+
 
       // Refresh orders in background
       if (currentUser) {
